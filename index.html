@@ -1357,6 +1357,56 @@
   </div>
 </div>
 
+<!-- EDIT WIPER MODAL -->
+<div class="modal-overlay" id="edit-wiper-modal">
+  <div class="modal">
+    <h2>Edit Wiper Blades</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Driver Side</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" id="edit-wiper-driver" placeholder="26" style="flex:1;">
+          <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Driver Brand</label>
+        <input type="text" id="edit-wiper-driver-mfr" placeholder="Bosch, Rain-X...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Passenger Side</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" id="edit-wiper-passenger" placeholder="18" style="flex:1;">
+          <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Passenger Brand</label>
+        <input type="text" id="edit-wiper-passenger-mfr" placeholder="Bosch, Rain-X...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Rear (optional)</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" id="edit-wiper-rear" placeholder="12" style="flex:1;">
+          <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Rear Brand</label>
+        <input type="text" id="edit-wiper-rear-mfr" placeholder="Bosch, Rain-X...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('edit-wiper-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveEditWipers()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT PRIMARY PART MODAL -->
 <div class="modal-overlay" id="edit-primary-part-modal">
   <div class="modal">
@@ -2395,21 +2445,22 @@ function renderParts(v) {
   ];
 
   // Wiper Blades
-  const wiperRows = [
-    w.driver    ? makeRow('Driver Side',    w.driver,    '', `<button class="btn-sm" onclick="showEditVehicleModal()" style="margin-left:4px;">Edit</button>`) : '',
-    w.passenger ? makeRow('Passenger Side', w.passenger, '', `<button class="btn-sm" onclick="showEditVehicleModal()" style="margin-left:4px;">Edit</button>`) : '',
-    w.rear      ? makeRow('Rear',           w.rear,      '', `<button class="btn-sm" onclick="showEditVehicleModal()" style="margin-left:4px;">Edit</button>`) : '',
-  ];
-  // Override amazon link for wipers to include vehicle context
+  // Wiper section with brand support
   const wiperSection = (w.driver || w.passenger || w.rear) ? `<div class="parts-section"><div class="parts-title">Wiper Blades</div>${colHeaders}${
-    [w.driver, w.passenger, w.rear].filter(Boolean).map((size, i) => {
-      const label = ['Driver Side','Passenger Side','Rear'][i + (w.driver ? 0 : 1)];
+    [
+      { size: w.driver,    mfr: w.driverMfr    || '', label: 'Driver Side' },
+      { size: w.passenger, mfr: w.passengerMfr || '', label: 'Passenger Side' },
+      { size: w.rear,      mfr: w.rearMfr      || '', label: 'Rear' }
+    ].filter(x => x.size).map(x => {
+      const query = x.mfr
+        ? `${x.mfr} ${x.size} wiper blade`
+        : `${v.year} ${v.make} ${v.model} wiper blade ${x.size}`;
       return `<div class="part-row">
-        <div class="part-name">${['Driver Side','Passenger Side','Rear'][[w.driver,w.passenger,w.rear].filter(Boolean).indexOf(size)]}</div>
-        <div style="min-width:60px;text-align:center;color:var(--muted);">—</div>
-        <div class="part-number">${size}</div>
-        <a class="amazon-btn" href="${amazonVehicleLink('wiper blade ' + size, v)}" target="_blank">Amazon →</a>
-        <button class="btn-sm" onclick="showEditVehicleModal()" style="margin-left:4px;">Edit</button>
+        <div class="part-name">${x.label}</div>
+        <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${x.mfr || '—'}</div>
+        <div class="part-number">${x.size}</div>
+        <a class="amazon-btn" href="https://www.amazon.com/s?k=${encodeURIComponent(query)}" target="_blank">Amazon →</a>
+        <button class="btn-sm" onclick="showEditWiperModal()" style="margin-left:4px;">Edit</button>
       </div>`;
     }).join('')
   }</div>` : '';
@@ -2458,6 +2509,38 @@ function deletePart(idx) {
 }
 
 let editingPartIdx = null;
+function showEditWiperModal() {
+  const v = vehicles.find(x => x.id === currentVehicleId);
+  const w = v.wipers || {};
+  document.getElementById('edit-wiper-driver').value = (w.driver || '').replace(/"/g, '').trim();
+  document.getElementById('edit-wiper-passenger').value = (w.passenger || '').replace(/"/g, '').trim();
+  document.getElementById('edit-wiper-rear').value = (w.rear || '').replace(/"/g, '').trim();
+  document.getElementById('edit-wiper-driver-mfr').value = w.driverMfr || '';
+  document.getElementById('edit-wiper-passenger-mfr').value = w.passengerMfr || '';
+  document.getElementById('edit-wiper-rear-mfr').value = w.rearMfr || '';
+  document.getElementById('edit-wiper-modal').classList.add('active');
+}
+
+function saveEditWipers() {
+  const v = vehicles.find(x => x.id === currentVehicleId);
+  if (!v.wipers) v.wipers = {};
+  const driver = document.getElementById('edit-wiper-driver').value.trim();
+  const passenger = document.getElementById('edit-wiper-passenger').value.trim();
+  const rear = document.getElementById('edit-wiper-rear').value.trim();
+  v.wipers.driver = driver ? driver + '"' : '';
+  v.wipers.passenger = passenger ? passenger + '"' : '';
+  v.wipers.rear = rear ? rear + '"' : '';
+  v.wipers.driverMfr = document.getElementById('edit-wiper-driver-mfr').value.trim();
+  v.wipers.passengerMfr = document.getElementById('edit-wiper-passenger-mfr').value.trim();
+  v.wipers.rearMfr = document.getElementById('edit-wiper-rear-mfr').value.trim();
+  // Clean empty keys
+  Object.keys(v.wipers).forEach(k => { if (!v.wipers[k]) delete v.wipers[k]; });
+  save();
+  closeModal('edit-wiper-modal');
+  renderParts(v);
+  showToast('Wipers updated!');
+}
+
 let editingPrimaryField = null;
 
 const primaryPartLabels = {
