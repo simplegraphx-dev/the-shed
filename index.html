@@ -1739,11 +1739,19 @@ function initGoogleAuth() {
         await loadFromDrive();
       }
     });
-    setSyncStatus('Ready — click Sign in with Google', false);
 
-    // Try silent sign-in if previously signed in
     if (localStorage.getItem('garage_gtoken')) {
+      // Previously signed in — try silent reconnect first
+      setSyncStatus('Reconnecting...', false);
       gTokenClient.requestAccessToken({ prompt: '' });
+    } else {
+      // Never signed in — auto-trigger the sign-in prompt
+      setSyncStatus('Signing in...', false);
+      setTimeout(() => {
+        try { gTokenClient.requestAccessToken({ prompt: 'select_account' }); } catch(e) {
+          setSyncStatus('Click Sign in with Google to sync', false);
+        }
+      }, 1000);
     }
   } catch(err) {
     setSyncStatus('Google init error: ' + err.message, false);
