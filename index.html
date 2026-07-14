@@ -546,6 +546,8 @@
     white-space: nowrap;
     display: inline-block;
     letter-spacing: 0.5px;
+    min-width: 80px;
+    text-align: center;
   }
 
   .amazon-btn:hover { background: #e67e22; }
@@ -1445,9 +1447,12 @@
         <input type="text" id="edit-part-number-input" placeholder="96779">
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal('edit-part-modal')">Cancel</button>
-      <button class="btn-primary" onclick="saveEditPart()">Save Changes</button>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn-sm danger" onclick="deletePartFromModal()" style="padding:8px 14px;">Delete Part</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" onclick="closeModal('edit-part-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveEditPart()">Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2365,8 +2370,7 @@ function primaryPartRow(label, field, number, mfr) {
 function partRow(name, number, idx, mfr) {
   if (!number || number === 'N/A' || number === '0') return '';
   const btns = idx !== undefined ? `
-    <button class="btn-sm" onclick="showEditPartModal(${idx})" style="margin-left:4px;">Edit</button>
-    <button class="btn-sm danger" onclick="deletePart(${idx})" style="margin-left:4px;">✕</button>` : '';
+    <button class="btn-sm" onclick="showEditPartModal(${idx})" style="margin-left:4px;">Edit</button>` : '';
   const searchQuery = mfr ? `${mfr} ${number}` : number;
   return `<div class="part-row">
     <div class="part-name">${name}</div>
@@ -2580,6 +2584,16 @@ function showEditPartModal(idx) {
   document.getElementById('edit-part-mfr-input').value = p.mfr || '';
   document.getElementById('edit-part-number-input').value = p.number || '';
   document.getElementById('edit-part-modal').classList.add('active');
+}
+
+function deletePartFromModal() {
+  if (!confirm('Delete this part?')) return;
+  const v = vehicles.find(x => x.id === currentVehicleId);
+  v.altParts.splice(editingPartIdx, 1);
+  save();
+  closeModal('edit-part-modal');
+  renderParts(v);
+  showToast('Part deleted.');
 }
 
 function saveEditPart() {
