@@ -2423,7 +2423,7 @@ function renderParts(v) {
   const altOil = [], altAir = [], altCabin = [], altOther = [];
   (v.altParts || []).forEach((p, i) => {
     const n = p.name.toLowerCase();
-    const editDel = `<button class="btn-sm" onclick="showEditPartModal(${i})" style="margin-left:4px;">Edit</button><button class="btn-sm danger" onclick="deletePart(${i})" style="margin-left:4px;">✕</button>`;
+    const editDel = `<button class="btn-sm" onclick="showEditPartModal(${i})" style="margin-left:4px;">Edit</button>`;
     const row = makeRow(p.name, p.number, p.mfr, editDel);
     if (n.includes('oil filter') || n.includes('oil')) altOil.push(row);
     else if (n.includes('air filter') || n.includes('air')) altAir.push(row);
