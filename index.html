@@ -924,17 +924,16 @@
       <text x="340" y="392" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="26" letter-spacing="6" fill="#c9952a">2015</text>
     </svg>
   </div>
-  <div style="display:flex;gap:8px;">
+  <div style="display:flex;gap:6px;align-items:center;">
+    <div style="display:flex;align-items:center;gap:4px;background:var(--steel);border:1px solid #333;padding:4px 8px;">
+      <div id="sync-status" style="font-size:11px;color:var(--muted);font-family:Inter,sans-serif;white-space:nowrap;overflow:hidden;max-width:120px;text-overflow:ellipsis;"></div>
+      <button id="sync-btn" onclick="handleSyncBtn()" style="background:none;border:none;color:var(--chrome);padding:0 0 0 6px;font-size:11px;font-family:Inter,sans-serif;cursor:pointer;white-space:nowrap;border-left:1px solid #444;">Sign in</button>
+    </div>
     <button onclick="showAddVehicleModal()" title="Add Vehicle">+ Add</button>
     <button onclick="showSettings()" style="background:var(--steel);border:1px solid #444;" title="Settings">⚙</button>
+    <button id="header-back-btn" onclick="showGarage()" title="Back to Garage" style="display:none;background:var(--steel);border:1px solid #444;">← Back</button>
   </div>
 </header>
-
-<!-- GOOGLE SYNC BAR -->
-<div id="sync-bar" style="background:#1a1a1a;border-bottom:1px solid #333;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-family:Inter,sans-serif;">
-  <div id="sync-status" style="color:var(--muted);">Not signed in — data saved locally only</div>
-  <button id="sync-btn" onclick="handleSyncBtn()" style="background:none;border:1px solid #444;color:var(--chrome);padding:4px 12px;font-size:12px;font-family:Inter,sans-serif;cursor:pointer;">Sign in with Google</button>
-</div>
 
 <!-- GARAGE VIEW -->
 <div id="garage-view" class="view active">
@@ -952,6 +951,7 @@
   <div class="detail-hero" id="detail-hero">
     <button class="back-btn" onclick="showGarage()">← Back</button>
     <button class="back-btn" onclick="showEditVehicleModal()" style="left:auto;right:16px;">✎ Edit</button>
+    
     <div class="detail-hero-overlay">
       <div class="detail-year-make" id="detail-year-make"></div>
       <div class="detail-model" id="detail-model"></div>
@@ -1754,7 +1754,7 @@ function handleSyncBtn() {
       localStorage.removeItem('garage_gtoken');
       try { google.accounts.oauth2.revoke(token, () => {}); } catch(e) {}
       setSyncStatus('Not signed in — data saved locally only', false);
-      document.getElementById('sync-btn').textContent = 'Sign in with Google';
+      document.getElementById('sync-btn').textContent = 'Sign in';
     }
   } else if (gTokenClient) {
     // Fire directly — no intermediate steps so browser doesn't block popup
@@ -1767,7 +1767,7 @@ function handleSyncBtn() {
 function setSyncStatus(msg, synced) {
   document.getElementById('sync-status').textContent = msg;
   document.getElementById('sync-status').style.color = synced ? 'var(--green)' : 'var(--muted)';
-  document.getElementById('sync-btn').textContent = synced ? 'Sign out' : 'Sign in with Google';
+  document.getElementById('sync-btn').textContent = synced ? 'Sign out' : 'Sign in';
 }
 
 function scheduleDriveSave() {
@@ -2660,6 +2660,9 @@ function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
+  // Show back button when not on garage view
+  const backBtn = document.getElementById('header-back-btn');
+  if (backBtn) backBtn.style.display = id === 'garage-view' ? 'none' : '';
 }
 
 function showGarage() {
