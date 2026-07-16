@@ -2410,14 +2410,15 @@ function renderParts(v) {
     <div style="width:70px;"></div>
   </div>`;
 
-  const makeRow = (label, number, mfr, editBtn) => {
+  const makeRow = (label, number, mfr, editBtn, customAmazon) => {
     if (!number || number === 'N/A' || number === '0') return '';
     const searchQuery = mfr ? `${mfr} ${number}` : number;
+    const amazonHtml = customAmazon ? '' : `<a class="amazon-btn" href="${amazonLink(searchQuery)}" target="_blank">Amazon →</a>`;
     return `<div class="part-row">
       <div class="part-name">${label}</div>
       <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${mfr || '—'}</div>
       <div class="part-number">${number}</div>
-      <a class="amazon-btn" href="${amazonLink(searchQuery)}" target="_blank">Amazon →</a>
+      ${amazonHtml}
       ${editBtn || ''}
     </div>`;
   };
@@ -2458,25 +2459,25 @@ function renderParts(v) {
   ];
 
   // Wiper Blades
-  // Wiper section with brand support
-  const wiperSection = (w.driver || w.passenger || w.rear) ? `<div class="parts-section"><div class="parts-title">Wiper Blades</div>${colHeaders}${
-    [
-      { size: w.driver,    mfr: w.driverMfr    || '', label: 'Driver Side' },
-      { size: w.passenger, mfr: w.passengerMfr || '', label: 'Passenger Side' },
-      { size: w.rear,      mfr: w.rearMfr      || '', label: 'Rear' }
-    ].filter(x => x.size).map(x => {
-      const query = x.mfr
-        ? `${x.mfr} ${x.size} wiper blade`
-        : `${v.year} ${v.make} ${v.model} wiper blade ${x.size}`;
-      return `<div class="part-row">
-        <div class="part-name">${x.label}</div>
-        <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${x.mfr || '—'}</div>
-        <div class="part-number">${x.size}</div>
-        <a class="amazon-btn" href="https://www.amazon.com/s?k=${encodeURIComponent(query)}" target="_blank">Amazon →</a>
-        <button class="btn-sm" onclick="showEditWiperModal()" style="margin-left:4px;">Edit</button>
-      </div>`;
-    }).join('')
-  }</div>` : '';
+  const wiperRows = [
+    { size: w.driver,    mfr: w.driverMfr    || '', label: 'Driver Side' },
+    { size: w.passenger, mfr: w.passengerMfr || '', label: 'Passenger Side' },
+    { size: w.rear,      mfr: w.rearMfr      || '', label: 'Rear' }
+  ].filter(x => x.size).map(x => {
+    const query = x.mfr
+      ? `${x.mfr} ${x.size} wiper blade`
+      : `${v.year} ${v.make} ${v.model} wiper blade ${x.size}`;
+    const searchQuery = mfr => query;
+    return `<div class="part-row">
+      <div class="part-name">${x.label}</div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${x.mfr || '—'}</div>
+      <div class="part-number">${x.size}</div>
+      <a class="amazon-btn" href="https://www.amazon.com/s?k=${encodeURIComponent(query)}" target="_blank">Amazon →</a>
+      <button class="btn-sm" onclick="showEditWiperModal()" style="margin-left:4px;">Edit</button>
+    </div>`;
+  });
+
+  const wiperSection = wiperRows.length ? `<div class="parts-section"><div class="parts-title">Wiper Blades</div>${colHeaders}${wiperRows.join('')}</div>` : '';
 
   let html = section('Oil Filters', oilRows)
            + section('Air Filters', airRows)
