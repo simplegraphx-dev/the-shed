@@ -954,8 +954,6 @@
 <div id="detail-view" class="view">
   <div class="detail-hero" id="detail-hero">
     <button class="back-btn" onclick="showGarage()">← Back</button>
-    <button class="back-btn" onclick="showEditVehicleModal()" style="left:auto;right:16px;z-index:20;position:absolute;">✎ Edit</button>
-    
     <div class="detail-hero-overlay">
       <div class="detail-year-make" id="detail-year-make"></div>
       <div class="detail-model" id="detail-model"></div>
@@ -967,6 +965,8 @@
   <div class="gallery-section">
     <div class="gallery-scroll" id="gallery-scroll"></div>
   </div>
+
+  <button onclick="showEditVehicleModal()" style="width:100%;background:var(--garage-red);color:white;border:none;padding:12px;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">✎ Edit Vehicle</button>
 
   <div class="detail-tabs">
     <button class="tab-btn active" onclick="switchTab('specs')">Specs</button>
@@ -2766,28 +2766,32 @@ function addVehicle() {
 }
 
 function showEditVehicleModal() {
-  const v = vehicles.find(x => x.id === currentVehicleId);
-  if (!v) return;
-  document.getElementById('ev-year').value = v.year || '';
-  document.getElementById('ev-make').value = v.make || '';
-  document.getElementById('ev-model').value = v.model || '';
-  document.getElementById('ev-tag').value = v.tag || '';
-  document.getElementById('ev-type').value = v.vehicleType || 'vehicle';
-  document.getElementById('ev-is-hours').value = v.isHours ? '1' : '0';
-  document.getElementById('ev-mileage-label').textContent = v.isHours ? 'Current Hours' : 'Current Mileage';
-  document.getElementById('ev-mileage').value = v.mileage || '';
-  document.getElementById('ev-oil-cap').value = v.specs.oilCap || '';
-  document.getElementById('ev-oil-weight').value = v.specs.oilWeight || '';
-  document.getElementById('ev-oil-filter').value = v.specs.oilFilter || '';
-  document.getElementById('ev-air-filter').value = v.specs.airFilter || '';
-  document.getElementById('ev-cabin-filter').value = v.specs.cabinFilter || '';
-  document.getElementById('ev-torque').value = (v.specs.torque || '').replace(/\s*ft\/lb/i, '').trim();
-  document.getElementById('ev-wrench').value = v.specs.wrench || '';
-  document.getElementById('ev-avg-miles').value = v.avgMilesPerWeek || '';
-  document.getElementById('ev-wiper-driver').value = ((v.wipers && v.wipers.driver) || '').replace(/"/g, '').trim();
-  document.getElementById('ev-wiper-passenger').value = ((v.wipers && v.wipers.passenger) || '').replace(/"/g, '').trim();
-  document.getElementById('ev-wiper-rear').value = ((v.wipers && v.wipers.rear) || '').replace(/"/g, '').trim();
-  document.getElementById('edit-vehicle-modal').classList.add('active');
+  try {
+    const v = vehicles.find(x => x.id === currentVehicleId);
+    if (!v) { alert('No vehicle selected. Please open a vehicle first.'); return; }
+    document.getElementById('ev-year').value = v.year || '';
+    document.getElementById('ev-make').value = v.make || '';
+    document.getElementById('ev-model').value = v.model || '';
+    document.getElementById('ev-tag').value = v.tag || '';
+    document.getElementById('ev-type').value = v.vehicleType || 'vehicle';
+    document.getElementById('ev-is-hours').value = v.isHours ? '1' : '0';
+    document.getElementById('ev-mileage-label').textContent = v.isHours ? 'Current Hours' : 'Current Mileage';
+    document.getElementById('ev-mileage').value = v.mileage || '';
+    document.getElementById('ev-oil-cap').value = (v.specs && v.specs.oilCap) || '';
+    document.getElementById('ev-oil-weight').value = (v.specs && v.specs.oilWeight) || '';
+    document.getElementById('ev-oil-filter').value = (v.specs && v.specs.oilFilter) || '';
+    document.getElementById('ev-air-filter').value = (v.specs && v.specs.airFilter) || '';
+    document.getElementById('ev-cabin-filter').value = (v.specs && v.specs.cabinFilter) || '';
+    document.getElementById('ev-torque').value = ((v.specs && v.specs.torque) || '').replace(/\s*ft\/lb/i, '').trim();
+    document.getElementById('ev-wrench').value = (v.specs && v.specs.wrench) || '';
+    document.getElementById('ev-avg-miles').value = v.avgMilesPerWeek || '';
+    document.getElementById('ev-wiper-driver').value = ((v.wipers && v.wipers.driver) || '').replace(/"/g, '').trim();
+    document.getElementById('ev-wiper-passenger').value = ((v.wipers && v.wipers.passenger) || '').replace(/"/g, '').trim();
+    document.getElementById('ev-wiper-rear').value = ((v.wipers && v.wipers.rear) || '').replace(/"/g, '').trim();
+    document.getElementById('edit-vehicle-modal').classList.add('active');
+  } catch(err) {
+    alert('Edit error: ' + err.message);
+  }
 }
 
 function saveEditVehicle() {
