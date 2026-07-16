@@ -953,7 +953,7 @@
 <div id="detail-view" class="view">
   <div class="detail-hero" id="detail-hero">
     <button class="back-btn" onclick="showGarage()">← Back</button>
-    <button class="back-btn" onclick="showEditVehicleModal()" style="left:auto;right:16px;">✎ Edit</button>
+    <button class="back-btn" onclick="showEditVehicleModal()" style="left:auto;right:16px;z-index:20;position:absolute;">✎ Edit</button>
     
     <div class="detail-hero-overlay">
       <div class="detail-year-make" id="detail-year-make"></div>
@@ -1461,7 +1461,7 @@
 <div class="modal-overlay" id="crop-modal" style="z-index:250;">
   <div class="modal" style="max-width:520px;padding:20px;">
     <h2>Crop Photo</h2>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Drag to move · Pinch or scroll to zoom · Drag corners to resize crop</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Drag the crop box to reposition · Drag corners to resize · Scroll to zoom</p>
     <div id="crop-container" style="position:relative;width:100%;height:320px;background:#111;overflow:hidden;cursor:move;touch-action:none;">
       <img id="crop-img" style="position:absolute;transform-origin:top left;" draggable="false">
       <div id="crop-box" style="position:absolute;border:2px solid var(--garage-red);box-shadow:0 0 0 9999px rgba(0,0,0,0.55);cursor:move;">
@@ -2184,10 +2184,9 @@ function cropMouseDown(e) {
   const handle = e.target.closest('.crop-handle');
   if (handle) {
     _drag = { type:'handle', pos: handle.dataset.pos, startX: mx, startY: my, origX: _boxX, origY: _boxY, origW: _boxW, origH: _boxH };
-  } else if (e.target === box || box.contains(e.target)) {
-    _drag = { type:'box', startX: mx, startY: my, origX: _boxX, origY: _boxY };
   } else {
-    _drag = { type:'img', startX: mx, startY: my, origX: _imgX, origY: _imgY };
+    // Clicking anywhere outside handles moves the crop box
+    _drag = { type:'box', startX: mx, startY: my, origX: _boxX, origY: _boxY };
   }
   window.onmousemove = cropMouseMove;
   window.onmouseup = () => { _drag = null; window.onmousemove = null; };
@@ -2210,10 +2209,8 @@ function cropTouchStart(e) {
     const handle = e.target.closest('.crop-handle');
     if (handle) {
       _drag = { type:'handle', pos: handle.dataset.pos, startX: mx, startY: my, origX: _boxX, origY: _boxY, origW: _boxW, origH: _boxH };
-    } else if (e.target === box || box.contains(e.target)) {
-      _drag = { type:'box', startX: mx, startY: my, origX: _boxX, origY: _boxY };
     } else {
-      _drag = { type:'img', startX: mx, startY: my, origX: _imgX, origY: _imgY };
+      _drag = { type:'box', startX: mx, startY: my, origX: _boxX, origY: _boxY };
     }
     e.preventDefault();
   }
@@ -2234,10 +2231,7 @@ document.addEventListener('touchend', () => { _drag = null; });
 function cropApplyDrag(mx, my) {
   const dx = mx - _drag.startX, dy = my - _drag.startY;
   const MIN = 40;
-  if (_drag.type === 'img') {
-    _imgX = _drag.origX + dx; _imgY = _drag.origY + dy;
-    applyImgTransform();
-  } else if (_drag.type === 'box') {
+  if (_drag.type === 'box') {
     _boxX = _drag.origX + dx; _boxY = _drag.origY + dy;
     applyCropBox();
   } else if (_drag.type === 'handle') {
