@@ -1080,8 +1080,11 @@
         <input type="number" id="nv-mileage" placeholder="45000">
       </div>
       <div class="form-group">
-        <label>Oil Capacity (qts)</label>
-        <input type="text" id="nv-oil-cap" placeholder="5">
+        <label>Oil Capacity</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" id="nv-oil-cap" placeholder="5" step="0.1" style="flex:1;">
+          <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;">Quarts</span>
+        </div>
       </div>
     </div>
     <div class="form-row">
@@ -1146,6 +1149,26 @@
         <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
       </div>
     </div>
+    <div id="nv-hydraulic-section" style="display:none;">
+      <div class="parts-title" style="margin:16px 0 10px;">Hydraulic System</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fluid Type</label>
+          <input type="text" id="nv-hydraulic-fluid" placeholder="20W-50, Hy-Gard...">
+        </div>
+        <div class="form-group">
+          <label>Capacity</label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input type="number" id="nv-hydraulic-cap" placeholder="3" step="0.1" style="flex:1;">
+            <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;">Quarts</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Hydraulic Filter #</label>
+        <input type="text" id="nv-hydraulic-filter" placeholder="AM125424">
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('add-vehicle-modal')">Cancel</button>
       <button class="btn-primary" onclick="addVehicle()">Add Vehicle</button>
@@ -1178,7 +1201,7 @@
       </div>
       <div class="form-group">
         <label>Vehicle Type</label>
-        <select id="ev-type" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
+        <select id="ev-type" onchange="document.getElementById('ev-hydraulic-section').style.display = this.value === 'other' ? '' : 'none';" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
           <option value="vehicle">Car or Truck</option>
           <option value="other">Other (Mower, Scooter, Equipment)</option>
         </select>
@@ -1198,7 +1221,10 @@
       </div>
       <div class="form-group">
         <label>Oil Capacity</label>
-        <input type="text" id="ev-oil-cap">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" id="ev-oil-cap" step="0.1" style="flex:1;">
+          <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;">Quarts</span>
+        </div>
       </div>
     </div>
     <div class="form-row">
@@ -1261,6 +1287,26 @@
       <div style="display:flex;align-items:center;gap:6px;">
         <input type="number" id="ev-wiper-rear" placeholder="12" style="flex:1;">
         <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
+      </div>
+    </div>
+    <div id="ev-hydraulic-section" style="display:none;">
+      <div class="parts-title" style="margin:16px 0 10px;">Hydraulic System</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fluid Type</label>
+          <input type="text" id="ev-hydraulic-fluid" placeholder="20W-50, Hy-Gard...">
+        </div>
+        <div class="form-group">
+          <label>Capacity</label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <input type="number" id="ev-hydraulic-cap" step="0.1" style="flex:1;">
+            <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;">Quarts</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Hydraulic Filter #</label>
+        <input type="text" id="ev-hydraulic-filter" placeholder="AM125424">
       </div>
     </div>
     <div class="modal-actions" style="justify-content:space-between;">
@@ -1513,7 +1559,7 @@ let vehicles = [
   {
     id: 'v1', year: '1964.5', make: 'Ford', model: 'Mustang',
     tag: '', mileage: 12645, avgMilesPerWeek: 50, photo: null,
-    specs: { oilCap: '5 qts', oilWeight: '10W-30', oilFilter: 'FL1A', airFilter: 'Wix 42083', cabinFilter: 'N/A', torque: '100 ft/lb', wrench: '' },
+    specs: { oilCap: '5 Quarts', oilWeight: '10W-30', oilFilter: 'FL1A', airFilter: 'Wix 42083', cabinFilter: 'N/A', torque: '100 ft/lb', wrench: '' },
     wipers: {},
     altParts: [],
     notes: '',
@@ -1525,7 +1571,7 @@ let vehicles = [
   {
     id: 'v2', year: '1969', make: 'Ford', model: 'F100',
     tag: '', mileage: 84734, avgMilesPerWeek: 50, photo: null,
-    specs: { oilCap: '5 qts', oilWeight: '10W-30', oilFilter: 'FL1A', airFilter: '', cabinFilter: 'N/A', torque: '100 ft/lb', wrench: '' },
+    specs: { oilCap: '5 Quarts', oilWeight: '10W-30', oilFilter: 'FL1A', airFilter: '', cabinFilter: 'N/A', torque: '100 ft/lb', wrench: '' },
     wipers: {},
     altParts: [],
     notes: '',
@@ -1536,7 +1582,7 @@ let vehicles = [
   {
     id: 'v3', year: '2002', make: 'Ford', model: 'F150',
     tag: '', mileage: 195163, avgMilesPerWeek: 150, photo: null,
-    specs: { oilCap: '6 qts', oilWeight: '5W-20', oilFilter: 'FL-820S', airFilter: '', cabinFilter: 'N/A', torque: '150 ft/lb', wrench: '16mm' },
+    specs: { oilCap: '6 Quarts', oilWeight: '5W-20', oilFilter: 'FL-820S', airFilter: '', cabinFilter: 'N/A', torque: '150 ft/lb', wrench: '16mm' },
     wipers: { driver: '20"', passenger: '20"' },
     altParts: [],
     notes: '',
@@ -1554,7 +1600,7 @@ let vehicles = [
   {
     id: 'v4', year: '2012', make: 'Toyota', model: 'Camry',
     tag: '', mileage: 118298, avgMilesPerWeek: 200, photo: null,
-    specs: { oilCap: '5 qts', oilWeight: '0W-20', oilFilter: '04152-YZZA1', airFilter: 'CA10171', cabinFilter: 'CV10285', torque: '76 ft/lb', wrench: '14mm' },
+    specs: { oilCap: '5 Quarts', oilWeight: '0W-20', oilFilter: '04152-YZZA1', airFilter: 'CA10171', cabinFilter: 'CV10285', torque: '76 ft/lb', wrench: '14mm' },
     wipers: { driver: '26"', passenger: '18"' },
     altParts: [
       { name: 'Spark Plugs', number: '96779', mfr: 'NGK' },
@@ -1587,7 +1633,7 @@ let vehicles = [
   {
     id: 'v5', year: '2017', make: 'Nissan', model: 'Rogue',
     tag: '', mileage: 115062, avgMilesPerWeek: 200, photo: null,
-    specs: { oilCap: '4.9 qts', oilWeight: '0W-20', oilFilter: '15208-65F0E', oilFilterMfr: 'Nissan OEM', airFilter: 'CA11858', airFilterMfr: 'Fram', cabinFilter: 'CF11854', cabinFilterMfr: 'Fram', torque: '83 ft/lb', wrench: '14mm' },
+    specs: { oilCap: '4.9 Quarts', oilWeight: '0W-20', oilFilter: '15208-65F0E', oilFilterMfr: 'Nissan OEM', airFilter: 'CA11858', airFilterMfr: 'Fram', cabinFilter: 'CF11854', cabinFilterMfr: 'Fram', torque: '83 ft/lb', wrench: '14mm' },
     wipers: { driver: '26"', passenger: '17"', rear: '12"' },
     altParts: [
       { name: 'Spark Plugs', number: '90565', mfr: 'NGK' },
@@ -1618,7 +1664,7 @@ let vehicles = [
   {
     id: 'v6', year: '2018', make: 'BMW', model: '320i xDrive',
     tag: '', mileage: 42433, avgMilesPerWeek: 150, photo: null,
-    specs: { oilCap: '5.1 qts', oilWeight: '0W-20', oilFilter: 'M1C-155A / Mobil 1', airFilter: 'SA11305 (STP)', cabinFilter: '', torque: '100 ft/lb', wrench: '17mm' },
+    specs: { oilCap: '5.1 Quarts', oilWeight: '0W-20', oilFilter: 'M1C-155A / Mobil 1', airFilter: 'SA11305 (STP)', cabinFilter: '', torque: '100 ft/lb', wrench: '17mm' },
     wipers: {},
     altParts: [],
     notes: '',
@@ -1629,7 +1675,7 @@ let vehicles = [
   {
     id: 'v7', year: '2024', make: 'Nissan', model: 'Pathfinder',
     tag: '', mileage: 30003, avgMilesPerWeek: 250, photo: null,
-    specs: { oilCap: '5 qts', oilWeight: '0W-20', oilFilter: '15208-65F0E', airFilter: 'CA12931 (Fram)', cabinFilter: 'CV12552 / WP10447 (WIX)', torque: '83 ft/lb', wrench: '14mm' },
+    specs: { oilCap: '5 Quarts', oilWeight: '0W-20', oilFilter: '15208-65F0E', airFilter: 'CA12931 (Fram)', cabinFilter: 'CV12552 / WP10447 (WIX)', torque: '83 ft/lb', wrench: '14mm' },
     wipers: { driver: '26"', passenger: '19"', rear: '10"' },
     altParts: [
       { name: 'Cabin Filter', number: 'CV12552', mfr: 'Fram' },
@@ -1649,7 +1695,7 @@ let vehicles = [
   {
     id: 'v8', year: '', make: 'John Deere', model: 'ZTrak 737',
     tag: '', mileage: 890.7, avgMilesPerWeek: 0, photo: null, isHours: true, vehicleType: 'other',
-    specs: { oilCap: '1.5 qts', oilWeight: '10W-30', oilFilter: 'AM107423', airFilter: '', cabinFilter: '', torque: '', wrench: '' },
+    specs: { oilCap: '1.5 Quarts', oilWeight: '10W-30', oilFilter: 'AM107423', airFilter: '', cabinFilter: '', torque: '', wrench: '' },
     wipers: {},
     altParts: [],
     notes: '',
@@ -1660,7 +1706,7 @@ let vehicles = [
   {
     id: 'v9', year: '2002', make: 'Great Dane', model: 'Chariot Jr',
     tag: '', mileage: 973, avgMilesPerWeek: 0, photo: null, isHours: true, vehicleType: 'other',
-    specs: { oilCap: '1.9 qts', oilWeight: '10W-30', oilFilter: 'Fram PH4967', airFilter: '11013-7002', cabinFilter: '', torque: '', wrench: '' },
+    specs: { oilCap: '1.9 Quarts', oilWeight: '10W-30', oilFilter: 'Fram PH4967', airFilter: '11013-7002', cabinFilter: '', torque: '', wrench: '' },
     wipers: {},
     altParts: [
       { name: 'Pre-filter', number: '11013-7001', mfr: '' },
@@ -2313,7 +2359,9 @@ function renderSpecs(v) {
     specCell('Oil Capacity', s.oilCap),
     specCell('Oil Weight', s.oilWeight, true),
     specCell('Lug Nut Torque', s.torque),
-    specCell('Drain Plug Wrench', s.wrench, true)
+    specCell('Drain Plug Wrench', s.wrench, true),
+    specCell('Hydraulic Fluid', s.hydraulicFluid, true),
+    specCell('Hydraulic Capacity', s.hydraulicCap)
   ].filter(Boolean).join('');
 
   const wipersHtml = Object.keys(v.wipers || {}).length ? `
@@ -2478,11 +2526,17 @@ function renderParts(v) {
     </div>`;
   });
 
+  // Hydraulic Filter
+  const hydraulicRows = [
+    makeRow('Hydraulic Filter', s.hydraulicFilter, s.hydraulicFilterMfr || '', `<button class="btn-sm" onclick="showEditPrimaryPartModal('hydraulicFilter')" style="margin-left:4px;">Edit</button>`)
+  ];
+
   const wiperSection = wiperRows.length ? `<div class="parts-section"><div class="parts-title">Wiper Blades</div>${colHeaders}${wiperRows.join('')}</div>` : '';
 
   let html = section('Oil Filters', oilRows)
            + section('Air Filters', airRows)
            + section('Cabin Filters', cabinRows)
+           + section('Hydraulic Filters', hydraulicRows)
            + wiperSection
            + section('Additional Parts', altOther);
 
@@ -2561,7 +2615,8 @@ let editingPrimaryField = null;
 const primaryPartLabels = {
   oilFilter: 'Oil Filter',
   airFilter: 'Air Filter',
-  cabinFilter: 'Cabin Filter'
+  cabinFilter: 'Cabin Filter',
+  hydraulicFilter: 'Hydraulic Filter'
 };
 
 function showEditPrimaryPartModal(field) {
@@ -2701,6 +2756,7 @@ function updateVehicleTypeFields() {
   const isOther = document.getElementById('nv-type').value === 'other';
   document.getElementById('nv-tag-row').style.display = isOther ? 'none' : '';
   document.getElementById('nv-type-only-row').style.display = isOther ? '' : 'none';
+  document.getElementById('nv-hydraulic-section').style.display = isOther ? '' : 'none';
   updateMileageLabel();
 }
 
@@ -2738,13 +2794,16 @@ function addVehicle() {
     vehicleType: document.getElementById('nv-type').value,
     photo: null,
     specs: {
-      oilCap: document.getElementById('nv-oil-cap').value.trim() + (document.getElementById('nv-oil-cap').value ? ' qts' : ''),
+      oilCap: document.getElementById('nv-oil-cap').value.trim() ? document.getElementById('nv-oil-cap').value.trim() + ' Quarts' : '',
       oilWeight: document.getElementById('nv-oil-weight').value.trim(),
       oilFilter: document.getElementById('nv-oil-filter').value.trim(),
       airFilter: document.getElementById('nv-air-filter').value.trim(),
       cabinFilter: document.getElementById('nv-cabin-filter').value.trim(),
       torque: document.getElementById('nv-torque').value.trim() ? document.getElementById('nv-torque').value.trim() + ' ft/lb' : '',
-      wrench: document.getElementById('nv-wrench').value.trim()
+      wrench: document.getElementById('nv-wrench').value.trim(),
+      hydraulicFluid: document.getElementById('nv-hydraulic-fluid').value.trim(),
+      hydraulicCap: document.getElementById('nv-hydraulic-cap').value.trim() ? document.getElementById('nv-hydraulic-cap').value.trim() + ' Quarts' : '',
+      hydraulicFilter: document.getElementById('nv-hydraulic-filter').value.trim()
     },
     wipers: {
       driver: document.getElementById('nv-wiper-driver').value.trim() ? document.getElementById('nv-wiper-driver').value.trim() + '"' : '',
@@ -2764,7 +2823,7 @@ function addVehicle() {
   showToast('Vehicle added!');
 
   // Clear form
-  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear'].forEach(id => document.getElementById(id).value = '');
+  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear','nv-hydraulic-fluid','nv-hydraulic-cap','nv-hydraulic-filter'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('nv-is-hours').value = '0';
   document.getElementById('nv-is-hours-other').value = '0';
   document.getElementById('nv-type').value = 'vehicle';
@@ -2783,7 +2842,7 @@ function showEditVehicleModal() {
     document.getElementById('ev-is-hours').value = v.isHours ? '1' : '0';
     document.getElementById('ev-mileage-label').textContent = v.isHours ? 'Current Hours' : 'Current Mileage';
     document.getElementById('ev-mileage').value = v.mileage || '';
-    document.getElementById('ev-oil-cap').value = (v.specs && v.specs.oilCap) || '';
+    document.getElementById('ev-oil-cap').value = ((v.specs && v.specs.oilCap) || '').replace(/\s*(qts|quarts)\s*/i, '').trim();
     document.getElementById('ev-oil-weight').value = (v.specs && v.specs.oilWeight) || '';
     document.getElementById('ev-oil-filter').value = (v.specs && v.specs.oilFilter) || '';
     document.getElementById('ev-air-filter').value = (v.specs && v.specs.airFilter) || '';
@@ -2794,6 +2853,10 @@ function showEditVehicleModal() {
     document.getElementById('ev-wiper-driver').value = ((v.wipers && v.wipers.driver) || '').replace(/"/g, '').trim();
     document.getElementById('ev-wiper-passenger').value = ((v.wipers && v.wipers.passenger) || '').replace(/"/g, '').trim();
     document.getElementById('ev-wiper-rear').value = ((v.wipers && v.wipers.rear) || '').replace(/"/g, '').trim();
+    document.getElementById('ev-hydraulic-fluid').value = (v.specs && v.specs.hydraulicFluid) || '';
+    document.getElementById('ev-hydraulic-cap').value = ((v.specs && v.specs.hydraulicCap) || '').replace(/\s*(qts|quarts)\s*/i, '').trim();
+    document.getElementById('ev-hydraulic-filter').value = (v.specs && v.specs.hydraulicFilter) || '';
+    document.getElementById('ev-hydraulic-section').style.display = (v.vehicleType === 'other') ? '' : 'none';
     document.getElementById('edit-vehicle-modal').classList.add('active');
   } catch(err) {
     alert('Edit error: ' + err.message);
@@ -2817,13 +2880,16 @@ function saveEditVehicle() {
   v.vehicleType = document.getElementById('ev-type').value;
   v.isHours = document.getElementById('ev-is-hours').value === '1';
 
-  v.specs.oilCap = document.getElementById('ev-oil-cap').value.trim();
+  v.specs.oilCap = document.getElementById('ev-oil-cap').value.trim() ? document.getElementById('ev-oil-cap').value.trim() + ' Quarts' : '';
   v.specs.oilWeight = document.getElementById('ev-oil-weight').value.trim();
   v.specs.oilFilter = document.getElementById('ev-oil-filter').value.trim();
   v.specs.airFilter = document.getElementById('ev-air-filter').value.trim();
   v.specs.cabinFilter = document.getElementById('ev-cabin-filter').value.trim();
   v.specs.torque = document.getElementById('ev-torque').value.trim() ? document.getElementById('ev-torque').value.trim() + ' ft/lb' : '';
   v.specs.wrench = document.getElementById('ev-wrench').value.trim();
+  v.specs.hydraulicFluid = document.getElementById('ev-hydraulic-fluid').value.trim();
+  v.specs.hydraulicCap = document.getElementById('ev-hydraulic-cap').value.trim() ? document.getElementById('ev-hydraulic-cap').value.trim() + ' Quarts' : '';
+  v.specs.hydraulicFilter = document.getElementById('ev-hydraulic-filter').value.trim();
 
   v.wipers = {
     driver: document.getElementById('ev-wiper-driver').value.trim() ? document.getElementById('ev-wiper-driver').value.trim() + '"' : '',
@@ -2996,6 +3062,9 @@ function exportToExcel() {
     rows.push(['Cabin Filter #', s.cabinFilter || '']);
     rows.push(['Lug Nut Torque', s.torque || '']);
     rows.push(['Oil Drain Wrench', s.wrench || '']);
+    if (s.hydraulicFluid)  rows.push(['Hydraulic Fluid Type', s.hydraulicFluid]);
+    if (s.hydraulicCap)    rows.push(['Hydraulic Capacity', s.hydraulicCap]);
+    if (s.hydraulicFilter) rows.push(['Hydraulic Filter #', s.hydraulicFilter]);
     if (w.driver)    rows.push(['Wiper - Driver', w.driver]);
     if (w.passenger) rows.push(['Wiper - Passenger', w.passenger]);
     if (w.rear)      rows.push(['Wiper - Rear', w.rear]);
