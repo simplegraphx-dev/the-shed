@@ -510,9 +510,9 @@
   }
 
   .part-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 70px 1fr auto;
     align-items: center;
-    justify-content: space-between;
     background: var(--panel);
     padding: 12px 14px;
     margin-bottom: 2px;
@@ -522,7 +522,9 @@
   .part-name {
     font-size: 13px;
     color: var(--muted);
-    min-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .part-number {
@@ -1177,8 +1179,8 @@
         <div class="form-group">
           <label>Capacity</label>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" id="nv-hydraulic-cap" placeholder="3" step="0.1" style="flex:1;">
-            <select id="nv-hydraulic-unit" style="background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 6px;font-family:Inter,sans-serif;font-size:13px;outline:none;">
+            <input type="number" id="nv-hydraulic-cap" placeholder="3" step="0.1" style="flex:1;min-width:0;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;outline:none;">
+            <select id="nv-hydraulic-unit" style="flex-shrink:0;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 6px;font-family:Inter,sans-serif;font-size:13px;outline:none;">
               <option value="Quarts">Quarts</option>
               <option value="Gallons">Gallons</option>
             </select>
@@ -1338,8 +1340,8 @@
         <div class="form-group">
           <label>Capacity</label>
           <div style="display:flex;align-items:center;gap:6px;">
-            <input type="number" id="ev-hydraulic-cap" step="0.1" style="flex:1;">
-            <select id="ev-hydraulic-unit" style="background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 6px;font-family:Inter,sans-serif;font-size:13px;outline:none;">
+            <input type="number" id="ev-hydraulic-cap" step="0.1" style="flex:1;min-width:0;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:'Inter',sans-serif;font-size:14px;outline:none;">
+            <select id="ev-hydraulic-unit" style="flex-shrink:0;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 6px;font-family:Inter,sans-serif;font-size:13px;outline:none;">
               <option value="Quarts">Quarts</option>
               <option value="Gallons">Gallons</option>
             </select>
@@ -2519,32 +2521,35 @@ function primaryPartRow(label, field, number, mfr) {
   if (!number || number === 'N/A' || number === '0') {
     return `<div class="part-row">
       <div class="part-name">${label}</div>
-      <div style="min-width:60px;text-align:center;font-size:12px;color:var(--muted);">—</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);">—</div>
       <div class="part-number" style="color:var(--muted);font-size:12px;">Not set</div>
-      <button class="btn-sm" onclick="showEditPrimaryPartModal('${field}')" style="margin-left:4px;">Edit</button>
+      <div style="justify-self:end;"><button class="btn-sm" onclick="showEditPrimaryPartModal('${field}')">Edit</button></div>
     </div>`;
   }
   const searchQuery = mfr ? `${mfr} ${number}` : number;
   return `<div class="part-row">
     <div class="part-name">${label}</div>
-    <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${mfr || '—'}</div>
+    <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);text-align:center;">${mfr || '—'}</div>
     <div class="part-number">${number}</div>
-    <a class="amazon-btn" href="${amazonLink(searchQuery)}" target="_blank">Amazon →</a>
-    <button class="btn-sm" onclick="showEditPrimaryPartModal('${field}')" style="margin-left:4px;">Edit</button>
+    <div style="display:flex;align-items:center;gap:4px;justify-self:end;">
+      <a class="amazon-btn" href="${amazonLink(searchQuery)}" target="_blank">Amazon →</a>
+      <button class="btn-sm" onclick="showEditPrimaryPartModal('${field}')">Edit</button>
+    </div>
   </div>`;
 }
 
 function partRow(name, number, idx, mfr) {
   if (!number || number === 'N/A' || number === '0') return '';
-  const btns = idx !== undefined ? `
-    <button class="btn-sm" onclick="showEditPartModal(${idx})" style="margin-left:4px;">Edit</button>` : '';
+  const btns = idx !== undefined ? `<button class="btn-sm" onclick="showEditPartModal(${idx})">Edit</button>` : '';
   const searchQuery = mfr ? `${mfr} ${number}` : number;
   return `<div class="part-row">
     <div class="part-name">${name}</div>
-    <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${mfr || '—'}</div>
+    <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);text-align:center;">${mfr || '—'}</div>
     <div class="part-number">${number}</div>
-    <a class="amazon-btn" href="${amazonLink(searchQuery)}" target="_blank">Amazon →</a>
-    ${btns}
+    <div style="display:flex;align-items:center;gap:4px;justify-self:end;">
+      <a class="amazon-btn" href="${amazonLink(searchQuery)}" target="_blank">Amazon →</a>
+      ${btns}
+    </div>
   </div>`;
 }
 
@@ -2553,8 +2558,9 @@ function wiperPartRow(label, size, v) {
   const query = `wiper blade ${size}`;
   return `<div class="part-row">
     <div class="part-name">${label}</div>
+    <div style="text-align:center;color:var(--muted);">—</div>
     <div class="part-number">${size}</div>
-    <a class="amazon-btn" href="${amazonVehicleLink(query, v)}" target="_blank">Amazon →</a>
+    <div style="justify-self:end;"><a class="amazon-btn" href="${amazonVehicleLink(query, v)}" target="_blank">Amazon →</a></div>
   </div>`;
 }
 
@@ -2564,9 +2570,9 @@ function renderParts(v) {
 
   const colHeaders = `<div class="part-row" style="border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:4px;">
     <div class="part-name" style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Part</div>
-    <div style="min-width:60px;text-align:center;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Brand</div>
+    <div style="text-align:center;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Brand</div>
     <div class="part-number" style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Number</div>
-    <div style="width:70px;"></div>
+    <div></div>
   </div>`;
 
   const makeRow = (label, number, mfr, editBtn, customAmazon) => {
@@ -2575,10 +2581,9 @@ function renderParts(v) {
     const amazonHtml = customAmazon ? '' : `<a class="amazon-btn" href="${amazonLink(searchQuery)}" target="_blank">Amazon →</a>`;
     return `<div class="part-row">
       <div class="part-name">${label}</div>
-      <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${mfr || '—'}</div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);text-align:center;">${mfr || '—'}</div>
       <div class="part-number">${number}</div>
-      ${amazonHtml}
-      ${editBtn || ''}
+      <div style="display:flex;align-items:center;gap:4px;justify-self:end;">${amazonHtml}${editBtn || ''}</div>
     </div>`;
   };
 
@@ -2629,10 +2634,12 @@ function renderParts(v) {
     const searchQuery = mfr => query;
     return `<div class="part-row">
       <div class="part-name">${x.label}</div>
-      <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);min-width:60px;text-align:center;">${x.mfr || '—'}</div>
+      <div style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--accent);text-align:center;">${x.mfr || '—'}</div>
       <div class="part-number">${x.size}</div>
-      <a class="amazon-btn" href="https://www.amazon.com/s?k=${encodeURIComponent(query)}" target="_blank">Amazon →</a>
-      <button class="btn-sm" onclick="showEditWiperModal()" style="margin-left:4px;">Edit</button>
+      <div style="display:flex;align-items:center;gap:4px;justify-self:end;">
+        <a class="amazon-btn" href="https://www.amazon.com/s?k=${encodeURIComponent(query)}" target="_blank">Amazon →</a>
+        <button class="btn-sm" onclick="showEditWiperModal()">Edit</button>
+      </div>
     </div>`;
   });
 
