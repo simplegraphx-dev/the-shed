@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
 <title>The Shed</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap');
@@ -692,6 +693,14 @@
 
   .form-group input:focus,
   .form-group textarea:focus { border-color: var(--garage-red); }
+
+  /* Fix iOS/Safari native styling overriding number input colors */
+  input[type="number"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: var(--steel) !important;
+    color: var(--chrome) !important;
+  }
 
   .form-group textarea { height: 80px; resize: vertical; }
 
