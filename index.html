@@ -1065,6 +1065,24 @@
         </select>
       </div>
     </div>
+    <div class="form-group" id="nv-inspection-row">
+      <label>Inspection Month</label>
+      <select id="nv-inspection-month" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
+        <option value="">Not set</option>
+        <option value="January">January</option>
+        <option value="February">February</option>
+        <option value="March">March</option>
+        <option value="April">April</option>
+        <option value="May">May</option>
+        <option value="June">June</option>
+        <option value="July">July</option>
+        <option value="August">August</option>
+        <option value="September">September</option>
+        <option value="October">October</option>
+        <option value="November">November</option>
+        <option value="December">December</option>
+      </select>
+    </div>
     <div class="form-row" id="nv-type-only-row" style="display:none;">
       <div class="form-group">
         <label>Tracking Type</label>
@@ -1160,7 +1178,10 @@
           <label>Capacity</label>
           <div style="display:flex;align-items:center;gap:6px;">
             <input type="number" id="nv-hydraulic-cap" placeholder="3" step="0.1" style="flex:1;">
-            <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;">Quarts</span>
+            <select id="nv-hydraulic-unit" style="background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 6px;font-family:Inter,sans-serif;font-size:13px;outline:none;">
+              <option value="Quarts">Quarts</option>
+              <option value="Gallons">Gallons</option>
+            </select>
           </div>
         </div>
       </div>
@@ -1201,7 +1222,7 @@
       </div>
       <div class="form-group">
         <label>Vehicle Type</label>
-        <select id="ev-type" onchange="document.getElementById('ev-hydraulic-section').style.display = this.value === 'other' ? '' : 'none';" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
+        <select id="ev-type" onchange="document.getElementById('ev-hydraulic-section').style.display = this.value === 'other' ? '' : 'none'; document.getElementById('ev-inspection-row').style.display = this.value === 'other' ? 'none' : '';" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
           <option value="vehicle">Car or Truck</option>
           <option value="other">Other (Mower, Scooter, Equipment)</option>
         </select>
@@ -1213,6 +1234,24 @@
           <option value="1">Hours</option>
         </select>
       </div>
+    </div>
+    <div class="form-group" id="ev-inspection-row">
+      <label>Inspection Month</label>
+      <select id="ev-inspection-month" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
+        <option value="">Not set</option>
+        <option value="January">January</option>
+        <option value="February">February</option>
+        <option value="March">March</option>
+        <option value="April">April</option>
+        <option value="May">May</option>
+        <option value="June">June</option>
+        <option value="July">July</option>
+        <option value="August">August</option>
+        <option value="September">September</option>
+        <option value="October">October</option>
+        <option value="November">November</option>
+        <option value="December">December</option>
+      </select>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -1300,7 +1339,10 @@
           <label>Capacity</label>
           <div style="display:flex;align-items:center;gap:6px;">
             <input type="number" id="ev-hydraulic-cap" step="0.1" style="flex:1;">
-            <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;">Quarts</span>
+            <select id="ev-hydraulic-unit" style="background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 6px;font-family:Inter,sans-serif;font-size:13px;outline:none;">
+              <option value="Quarts">Quarts</option>
+              <option value="Gallons">Gallons</option>
+            </select>
           </div>
         </div>
       </div>
@@ -2390,9 +2432,77 @@ function renderSpecs(v) {
       </div>
       <button class="mileage-update-btn" onclick="saveTag()">Save</button>
     </div>` : ''}
+    ${v.inspectionMonth ? `
+    <div style="display:flex;align-items:center;gap:10px;background:var(--panel);padding:12px 14px;margin-bottom:16px;">
+      <div style="flex:1;">
+        <div class="spec-label">Inspection Month</div>
+        <div class="spec-value">${v.inspectionMonth}</div>
+      </div>
+      <button class="mileage-update-btn" onclick="downloadInspectionReminder('${v.id}')">📅 Remind Me</button>
+    </div>` : ''}
     ${specsGrid ? `<div class="specs-grid">${specsGrid}</div>` : ''}
     ${wipersHtml}
   `;
+}
+
+function downloadInspectionReminder(vehicleId) {
+  const v = vehicles.find(x => x.id === vehicleId);
+  if (!v || !v.inspectionMonth) return;
+
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const inspectionMonthIdx = months.indexOf(v.inspectionMonth);
+  if (inspectionMonthIdx === -1) return;
+
+  // Reminder = 1st of the month BEFORE inspection month, next occurrence
+  let reminderMonthIdx = inspectionMonthIdx - 1;
+  let year = new Date().getFullYear();
+  if (reminderMonthIdx < 0) { reminderMonthIdx = 11; }
+
+  const today = new Date();
+  let reminderDate = new Date(year, reminderMonthIdx, 1);
+  // If that date already passed this year, push to next year
+  if (reminderDate < today) {
+    reminderDate = new Date(year + 1, reminderMonthIdx, 1);
+  }
+
+  const pad = n => String(n).padStart(2, '0');
+  const dateStr = `${reminderDate.getFullYear()}${pad(reminderDate.getMonth()+1)}${pad(reminderDate.getDate())}`;
+  const endDate = new Date(reminderDate);
+  endDate.setDate(endDate.getDate() + 1);
+  const endDateStr = `${endDate.getFullYear()}${pad(endDate.getMonth()+1)}${pad(endDate.getDate())}`;
+
+  const title = `${v.year} ${v.make} ${v.model} - Inspection Due Next Month`;
+  const desc = `Reminder: ${v.year} ${v.make} ${v.model} inspection is due in ${v.inspectionMonth}. Plate: ${v.tag || 'N/A'}`;
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//The Shed//Inspection Reminder//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${v.id}-inspection-${Date.now()}@theshed`,
+    `DTSTAMP:${dateStr}T090000Z`,
+    `DTSTART;VALUE=DATE:${dateStr}`,
+    `DTEND;VALUE=DATE:${endDateStr}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${desc}`,
+    'BEGIN:VALARM',
+    'TRIGGER:-P0D',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${title}`,
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${v.make}-${v.model}-inspection-reminder.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Calendar reminder downloaded!');
 }
 
 function amazonLink(partNum) {
@@ -2757,6 +2867,7 @@ function updateVehicleTypeFields() {
   document.getElementById('nv-tag-row').style.display = isOther ? 'none' : '';
   document.getElementById('nv-type-only-row').style.display = isOther ? '' : 'none';
   document.getElementById('nv-hydraulic-section').style.display = isOther ? '' : 'none';
+  document.getElementById('nv-inspection-row').style.display = isOther ? 'none' : '';
   updateMileageLabel();
 }
 
@@ -2792,6 +2903,7 @@ function addVehicle() {
     avgMilesPerWeek: parseInt(document.getElementById('nv-avg-miles').value) || 0,
     isHours: document.getElementById('nv-type').value === 'vehicle' ? document.getElementById('nv-is-hours').value === '1' : document.getElementById('nv-is-hours-other').value === '1',
     vehicleType: document.getElementById('nv-type').value,
+    inspectionMonth: document.getElementById('nv-type').value === 'vehicle' ? document.getElementById('nv-inspection-month').value : '',
     photo: null,
     specs: {
       oilCap: document.getElementById('nv-oil-cap').value.trim() ? document.getElementById('nv-oil-cap').value.trim() + ' Quarts' : '',
@@ -2802,7 +2914,7 @@ function addVehicle() {
       torque: document.getElementById('nv-torque').value.trim() ? document.getElementById('nv-torque').value.trim() + ' ft/lb' : '',
       wrench: document.getElementById('nv-wrench').value.trim(),
       hydraulicFluid: document.getElementById('nv-hydraulic-fluid').value.trim(),
-      hydraulicCap: document.getElementById('nv-hydraulic-cap').value.trim() ? document.getElementById('nv-hydraulic-cap').value.trim() + ' Quarts' : '',
+      hydraulicCap: document.getElementById('nv-hydraulic-cap').value.trim() ? document.getElementById('nv-hydraulic-cap').value.trim() + ' ' + document.getElementById('nv-hydraulic-unit').value : '',
       hydraulicFilter: document.getElementById('nv-hydraulic-filter').value.trim()
     },
     wipers: {
@@ -2827,6 +2939,8 @@ function addVehicle() {
   document.getElementById('nv-is-hours').value = '0';
   document.getElementById('nv-is-hours-other').value = '0';
   document.getElementById('nv-type').value = 'vehicle';
+  document.getElementById('nv-hydraulic-unit').value = 'Quarts';
+  document.getElementById('nv-inspection-month').value = '';
   updateVehicleTypeFields();
 }
 
@@ -2854,9 +2968,12 @@ function showEditVehicleModal() {
     document.getElementById('ev-wiper-passenger').value = ((v.wipers && v.wipers.passenger) || '').replace(/"/g, '').trim();
     document.getElementById('ev-wiper-rear').value = ((v.wipers && v.wipers.rear) || '').replace(/"/g, '').trim();
     document.getElementById('ev-hydraulic-fluid').value = (v.specs && v.specs.hydraulicFluid) || '';
-    document.getElementById('ev-hydraulic-cap').value = ((v.specs && v.specs.hydraulicCap) || '').replace(/\s*(qts|quarts)\s*/i, '').trim();
+    document.getElementById('ev-hydraulic-cap').value = ((v.specs && v.specs.hydraulicCap) || '').replace(/\s*(qts|quarts|gal|gallons)\s*/i, '').trim();
+    document.getElementById('ev-hydraulic-unit').value = /gallon/i.test((v.specs && v.specs.hydraulicCap) || '') ? 'Gallons' : 'Quarts';
     document.getElementById('ev-hydraulic-filter').value = (v.specs && v.specs.hydraulicFilter) || '';
     document.getElementById('ev-hydraulic-section').style.display = (v.vehicleType === 'other') ? '' : 'none';
+    document.getElementById('ev-inspection-month').value = v.inspectionMonth || '';
+    document.getElementById('ev-inspection-row').style.display = (v.vehicleType === 'other') ? 'none' : '';
     document.getElementById('edit-vehicle-modal').classList.add('active');
   } catch(err) {
     alert('Edit error: ' + err.message);
@@ -2879,6 +2996,7 @@ function saveEditVehicle() {
   v.avgMilesPerWeek = parseInt(document.getElementById('ev-avg-miles').value) || 0;
   v.vehicleType = document.getElementById('ev-type').value;
   v.isHours = document.getElementById('ev-is-hours').value === '1';
+  v.inspectionMonth = v.vehicleType === 'vehicle' ? document.getElementById('ev-inspection-month').value : '';
 
   v.specs.oilCap = document.getElementById('ev-oil-cap').value.trim() ? document.getElementById('ev-oil-cap').value.trim() + ' Quarts' : '';
   v.specs.oilWeight = document.getElementById('ev-oil-weight').value.trim();
@@ -2888,7 +3006,7 @@ function saveEditVehicle() {
   v.specs.torque = document.getElementById('ev-torque').value.trim() ? document.getElementById('ev-torque').value.trim() + ' ft/lb' : '';
   v.specs.wrench = document.getElementById('ev-wrench').value.trim();
   v.specs.hydraulicFluid = document.getElementById('ev-hydraulic-fluid').value.trim();
-  v.specs.hydraulicCap = document.getElementById('ev-hydraulic-cap').value.trim() ? document.getElementById('ev-hydraulic-cap').value.trim() + ' Quarts' : '';
+  v.specs.hydraulicCap = document.getElementById('ev-hydraulic-cap').value.trim() ? document.getElementById('ev-hydraulic-cap').value.trim() + ' ' + document.getElementById('ev-hydraulic-unit').value : '';
   v.specs.hydraulicFilter = document.getElementById('ev-hydraulic-filter').value.trim();
 
   v.wipers = {
@@ -3069,6 +3187,7 @@ function exportToExcel() {
     if (w.passenger) rows.push(['Wiper - Passenger', w.passenger]);
     if (w.rear)      rows.push(['Wiper - Rear', w.rear]);
     rows.push(['License Plate', v.tag || '']);
+    if (v.inspectionMonth) rows.push(['Inspection Month', v.inspectionMonth]);
     rows.push([`Current ${unit}`, v.mileage || '']);
     rows.push([]);
 
