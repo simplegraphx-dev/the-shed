@@ -2814,10 +2814,11 @@ function renderHistory(v) {
     html += `<div class="empty">No service history yet.</div>`;
   } else {
     sorted.forEach((h, i) => {
+      const missingMileage = h.mileage == null;
       html += `<div class="service-entry ${i === 0 ? 'recent' : ''}">
         <div class="service-meta">
           <div class="service-date">${h.date || '—'}</div>
-          <div class="service-mileage">${h.mileage != null ? Number(h.mileage).toLocaleString() + ' ' + unit : '—'}</div>
+          <div class="service-mileage" style="${missingMileage ? 'color:var(--accent);' : ''}">${missingMileage ? '⚠ No mileage' : Number(h.mileage).toLocaleString() + ' ' + unit}</div>
         </div>
         <div class="service-desc">${h.desc}</div>
         <div class="service-actions">
@@ -3118,11 +3119,16 @@ function parseServiceDate(dateStr) {
 function saveService() {
   const desc = document.getElementById('svc-desc').value.trim();
   if (!desc) { alert('Please enter what service was performed.'); return; }
+  const mileageVal = document.getElementById('svc-mileage').value.trim();
+  if (!mileageVal) {
+    const proceed = confirm('You haven\'t entered a mileage for this service. Save it anyway? You can add the mileage later by editing this entry.');
+    if (!proceed) return;
+  }
   const v = vehicles.find(x => x.id === currentVehicleId);
   const entry = {
     id: 'h' + Date.now(),
     date: formatServiceDate(document.getElementById('svc-date').value),
-    mileage: parseInt(document.getElementById('svc-mileage').value) || null,
+    mileage: parseInt(mileageVal) || null,
     desc
   };
   v.history.push(entry);
