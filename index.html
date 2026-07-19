@@ -2479,7 +2479,7 @@ function downloadInspectionReminder(vehicleId) {
   const endDateStr = `${endDate.getFullYear()}${pad(endDate.getMonth()+1)}${pad(endDate.getDate())}`;
 
   const title = `${v.year} ${v.make} ${v.model} - Inspection Due Next Month`;
-  const desc = `Reminder: ${v.year} ${v.make} ${v.model} inspection is due in ${v.inspectionMonth}. Plate: ${v.tag || 'N/A'}`;
+  const desc = `Yearly reminder: ${v.year} ${v.make} ${v.model} inspection is due in ${v.inspectionMonth}. Plate: ${v.tag || 'N/A'}. This event repeats every year.`;
 
   const ics = [
     'BEGIN:VCALENDAR',
@@ -2491,6 +2491,7 @@ function downloadInspectionReminder(vehicleId) {
     `DTSTAMP:${dateStr}T090000Z`,
     `DTSTART;VALUE=DATE:${dateStr}`,
     `DTEND;VALUE=DATE:${endDateStr}`,
+    'RRULE:FREQ=YEARLY',
     `SUMMARY:${title}`,
     `DESCRIPTION:${desc}`,
     'BEGIN:VALARM',
@@ -2509,7 +2510,7 @@ function downloadInspectionReminder(vehicleId) {
   a.download = `${v.make}-${v.model}-inspection-reminder.ics`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('Calendar reminder downloaded!');
+  showToast('Yearly reminder downloaded!');
 }
 
 function amazonLink(partNum) {
