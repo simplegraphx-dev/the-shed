@@ -2798,7 +2798,15 @@ function saveEditPart() {
 }
 
 function renderHistory(v) {
-  const sorted = [...v.history].sort((a, b) => (b.mileage || 0) - (a.mileage || 0));
+  const sorted = [...v.history].sort((a, b) => {
+    const dateA = parseServiceDate(a.date);
+    const dateB = parseServiceDate(b.date);
+    if (dateA && dateB) return dateB - dateA;
+    if (dateA) return -1;
+    if (dateB) return 1;
+    // Fall back to mileage if neither has a parseable date
+    return (b.mileage || 0) - (a.mileage || 0);
+  });
   const unit = v.isHours ? 'hrs' : 'mi';
   let html = `<button class="add-service-btn" onclick="showAddServiceModal()">+ Log Service</button>`;
 
@@ -3090,13 +3098,30 @@ function toggleServiceChip(chip, item) {
   textarea.value = current.join(', ');
 }
 
+// Format YYYY-MM-DD input into "Jan 2, 2022" style matching imported history
+function formatServiceDate(isoDate) {
+  if (!isoDate) return '—';
+  // Parse as local date (avoid timezone shift from new Date('YYYY-MM-DD'))
+  const [year, month, day] = isoDate.split('-').map(Number);
+  if (!year || !month || !day) return isoDate;
+  const d = new Date(year, month - 1, day);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Parse a stored history date (either "Jan 2, 2022" style or raw ISO) into a Date for sorting
+function parseServiceDate(dateStr) {
+  if (!dateStr || dateStr === '—') return null;
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function saveService() {
   const desc = document.getElementById('svc-desc').value.trim();
   if (!desc) { alert('Please enter what service was performed.'); return; }
   const v = vehicles.find(x => x.id === currentVehicleId);
   const entry = {
     id: 'h' + Date.now(),
-    date: document.getElementById('svc-date').value || '—',
+    date: formatServiceDate(document.getElementById('svc-date').value),
     mileage: parseInt(document.getElementById('svc-mileage').value) || null,
     desc
   };
@@ -3113,7 +3138,9 @@ function editService(hid) {
   const v = vehicles.find(x => x.id === currentVehicleId);
   const h = v.history.find(x => x.id === hid);
   editingServiceId = hid;
-  document.getElementById('edit-svc-date').value = h.date && h.date !== '—' ? h.date : '';
+  // Convert stored friendly date back to YYYY-MM-DD for the date input
+  const parsed = parseServiceDate(h.date);
+  document.getElementById('edit-svc-date').value = parsed ? parsed.toISOString().split('T')[0] : '';
   document.getElementById('edit-svc-mileage').value = h.mileage || '';
   document.getElementById('edit-svc-desc').value = h.desc;
   document.getElementById('edit-service-modal').classList.add('active');
@@ -3122,7 +3149,7 @@ function editService(hid) {
 function saveEditService() {
   const v = vehicles.find(x => x.id === currentVehicleId);
   const h = v.history.find(x => x.id === editingServiceId);
-  h.date = document.getElementById('edit-svc-date').value || '—';
+  h.date = formatServiceDate(document.getElementById('edit-svc-date').value);
   h.mileage = parseInt(document.getElementById('edit-svc-mileage').value) || null;
   h.desc = document.getElementById('edit-svc-desc').value.trim();
   save();
