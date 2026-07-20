@@ -813,6 +813,43 @@
     pointer-events: none;
   }
 
+  .undo-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2a2a2a;
+    border: 1px solid #444;
+    color: var(--chrome);
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 300;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  .undo-toast.active { display: flex; }
+
+  .undo-toast button {
+    background: var(--garage-red);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .undo-toast button:hover { background: #a93226; }
+
   .tag-badge {
     display: inline-block;
     background: #1a1a1a;
@@ -1594,6 +1631,10 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="undo-toast" id="undo-toast">
+  <span id="undo-toast-msg"></span>
+  <button onclick="performUndo()">Undo</button>
+</div>
 
 <script>
 // ── DATA ──────────────────────────────────────────────────────────
@@ -2692,12 +2733,18 @@ function savePart() {
 }
 
 function deletePart(idx) {
-  if (!confirm('Remove this part?')) return;
   const v = vehicles.find(x => x.id === currentVehicleId);
+  const deletedPart = v.altParts[idx];
+
   v.altParts.splice(idx, 1);
   save();
   renderParts(v);
-  showToast('Part removed.');
+
+  showUndoToast('Part removed.', () => {
+    v.altParts.splice(idx, 0, deletedPart);
+    save();
+    renderParts(v);
+  });
 }
 
 let editingPartIdx = null;
@@ -2775,13 +2822,20 @@ function showEditPartModal(idx) {
 }
 
 function deletePartFromModal() {
-  if (!confirm('Delete this part?')) return;
   const v = vehicles.find(x => x.id === currentVehicleId);
-  v.altParts.splice(editingPartIdx, 1);
+  const idx = editingPartIdx;
+  const deletedPart = v.altParts[idx];
+
+  v.altParts.splice(idx, 1);
   save();
   closeModal('edit-part-modal');
   renderParts(v);
-  showToast('Part deleted.');
+
+  showUndoToast('Part deleted.', () => {
+    v.altParts.splice(idx, 0, deletedPart);
+    save();
+    renderParts(v);
+  });
 }
 
 function saveEditPart() {
@@ -3047,12 +3101,21 @@ function saveEditVehicle() {
 function deleteVehicle() {
   const v = vehicles.find(x => x.id === currentVehicleId);
   if (!v) return;
-  if (!confirm(`Delete ${v.year} ${v.make} ${v.model}? This removes all its history and photos permanently.`)) return;
+  if (!confirm(`Delete ${v.year} ${v.make} ${v.model}? This removes all its history and photos. You'll have a few seconds to undo.`)) return;
+
+  const deletedVehicle = v;
+  const deletedIdx = vehicles.findIndex(x => x.id === currentVehicleId);
+
   vehicles = vehicles.filter(x => x.id !== currentVehicleId);
   save();
   closeModal('edit-vehicle-modal');
   showGarage();
-  showToast('Vehicle deleted.');
+
+  showUndoToast(`${deletedVehicle.year} ${deletedVehicle.make} ${deletedVehicle.model} deleted.`, () => {
+    vehicles.splice(deletedIdx, 0, deletedVehicle);
+    save();
+    renderGarage();
+  });
 }
 
 function showAddServiceModal() {
@@ -3165,8 +3228,10 @@ function saveEditService() {
 }
 
 function deleteService(hid) {
-  if (!confirm('Delete this service record?')) return;
   const v = vehicles.find(x => x.id === currentVehicleId);
+  const deletedEntry = v.history.find(x => x.id === hid);
+  const deletedIdx = v.history.findIndex(x => x.id === hid);
+  const previousMileage = v.mileage;
 
   v.history = v.history.filter(x => x.id !== hid);
 
@@ -3181,7 +3246,14 @@ function deleteService(hid) {
   save();
   renderHistory(v);
   renderSpecs(v);
-  showToast('Record deleted.');
+
+  showUndoToast('Service record deleted.', () => {
+    v.history.splice(deletedIdx, 0, deletedEntry);
+    v.mileage = previousMileage;
+    save();
+    renderHistory(v);
+    renderSpecs(v);
+  });
 }
 
 function showMileageModal() {
@@ -3426,11 +3498,16 @@ function finishEditItem(idx, input) {
 }
 
 function deleteServiceItem(idx) {
-  if (!confirm('Remove this service item?')) return;
+  const deletedItem = serviceItems[idx];
   serviceItems.splice(idx, 1);
   saveServiceItems();
   renderServiceItemsList();
-  showToast('Item removed.');
+
+  showUndoToast('Service item removed.', () => {
+    serviceItems.splice(idx, 0, deletedItem);
+    saveServiceItems();
+    renderServiceItemsList();
+  });
 }
 
 function resetServiceItems() {
@@ -3463,6 +3540,32 @@ function showToast(msg) {
   t.textContent = msg;
   t.style.opacity = '1';
   setTimeout(() => t.style.opacity = '0', 2000);
+}
+
+// ── UNDO SYSTEM ──────────────────────────────────────────────────
+let _undoAction = null;
+let _undoTimer = null;
+
+function showUndoToast(msg, undoFn) {
+  _undoAction = undoFn;
+  const toast = document.getElementById('undo-toast');
+  document.getElementById('undo-toast-msg').textContent = msg;
+  toast.classList.add('active');
+  if (_undoTimer) clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(() => {
+    toast.classList.remove('active');
+    _undoAction = null;
+  }, 6000);
+}
+
+function performUndo() {
+  if (_undoAction) {
+    _undoAction();
+    _undoAction = null;
+  }
+  document.getElementById('undo-toast').classList.remove('active');
+  if (_undoTimer) clearTimeout(_undoTimer);
+  showToast('Restored!');
 }
 
 // Close modals on overlay click
