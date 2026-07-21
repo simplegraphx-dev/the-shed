@@ -2144,6 +2144,7 @@ function openVehicle(id) {
   currentVehicleId = id;
   const v = vehicles.find(x => x.id === id);
   if (!v.photos) v.photos = v.photo ? [v.photo] : [];
+  _historySearchTerm = '';
 
   document.getElementById('detail-year-make').textContent = `${v.year} ${v.make}`.trim();
   document.getElementById('detail-model').textContent = v.model;
@@ -2862,28 +2863,79 @@ function renderHistory(v) {
     return (b.mileage || 0) - (a.mileage || 0);
   });
   const unit = v.isHours ? 'hrs' : 'mi';
-  let html = `<button class="add-service-btn" onclick="showAddServiceModal()">+ Log Service</button>`;
 
-  if (!sorted.length) {
-    html += `<div class="empty">No service history yet.</div>`;
-  } else {
-    sorted.forEach((h, i) => {
-      const missingMileage = h.mileage == null;
-      html += `<div class="service-entry ${i === 0 ? 'recent' : ''}">
-        <div class="service-meta">
-          <div class="service-date">${h.date || '—'}</div>
-          <div class="service-mileage" style="${missingMileage ? 'color:var(--accent);' : ''}">${missingMileage ? '⚠ No mileage' : Number(h.mileage).toLocaleString() + ' ' + unit}</div>
-        </div>
-        <div class="service-desc">${h.desc}</div>
-        <div class="service-actions">
-          <button class="btn-sm" onclick="editService('${h.id}')">Edit</button>
-          <button class="btn-sm danger" onclick="deleteService('${h.id}')">Delete</button>
-        </div>
-      </div>`;
-    });
-  }
+  let html = `<div class="form-group" style="margin-bottom:14px;">
+    <input type="text" id="history-search" placeholder="🔍 Search history — e.g. spark plugs, brakes..."
+      style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;"
+      oninput="filterHistory()" value="${_historySearchTerm || ''}">
+  </div>
+  <div id="history-search-count" style="font-size:12px;color:var(--muted);margin-bottom:10px;display:none;"></div>
+  <button class="add-service-btn" onclick="showAddServiceModal()">+ Log Service</button>
+  <div id="history-entries"></div>`;
 
   document.getElementById('tab-history').innerHTML = html;
+
+  // Store full sorted list on the element for filtering, then render
+  window._historyFullList = sorted;
+  window._historyUnit = unit;
+  filterHistory();
+}
+
+let _historySearchTerm = '';
+
+function highlightMatch(text, term) {
+  if (!term) return text;
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  return text.replace(regex, '<mark style="background:var(--accent);color:#000;padding:0 2px;border-radius:2px;">$1</mark>');
+}
+
+function filterHistory() {
+  const searchInput = document.getElementById('history-search');
+  const term = searchInput ? searchInput.value.trim() : '';
+  _historySearchTerm = term;
+
+  const sorted = window._historyFullList || [];
+  const unit = window._historyUnit || 'mi';
+
+  const filtered = term
+    ? sorted.filter(h => h.desc.toLowerCase().includes(term.toLowerCase()))
+    : sorted;
+
+  const countEl = document.getElementById('history-search-count');
+  if (term) {
+    countEl.style.display = 'block';
+    countEl.textContent = `${filtered.length} matching record${filtered.length === 1 ? '' : 's'}`;
+  } else {
+    countEl.style.display = 'none';
+  }
+
+  const container = document.getElementById('history-entries');
+  if (!filtered.length) {
+    container.innerHTML = term
+      ? `<div class="empty">No service records match "${term}".</div>`
+      : `<div class="empty">No service history yet.</div>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach((h, i) => {
+    const missingMileage = h.mileage == null;
+    const descHtml = term ? highlightMatch(h.desc, term) : h.desc;
+    html += `<div class="service-entry ${i === 0 && !term ? 'recent' : ''}">
+      <div class="service-meta">
+        <div class="service-date">${h.date || '—'}</div>
+        <div class="service-mileage" style="${missingMileage ? 'color:var(--accent);' : ''}">${missingMileage ? '⚠ No mileage' : Number(h.mileage).toLocaleString() + ' ' + unit}</div>
+      </div>
+      <div class="service-desc">${descHtml}</div>
+      <div class="service-actions">
+        <button class="btn-sm" onclick="editService('${h.id}')">Edit</button>
+        <button class="btn-sm danger" onclick="deleteService('${h.id}')">Delete</button>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
 }
 
 function renderNotes(v) {
