@@ -1842,7 +1842,16 @@ const EMOJI = { Ford: '🚙', Toyota: '🚗', Nissan: '🚐', BMW: '🏎️', 'J
 function getEmoji(make) { return EMOJI[make] || '🚗'; }
 
 function save() {
-  localStorage.setItem('garage_data', JSON.stringify({ vehicles, serviceItems }));
+  try {
+    localStorage.setItem('garage_data', JSON.stringify({ vehicles, serviceItems }));
+  } catch (err) {
+    // Local storage is full (common once you have many photos). Don't block the
+    // save — Google Drive has far more room and will keep everything safe.
+    console.warn('Local storage full, relying on Google Drive sync:', err);
+    if (!gDriveReady) {
+      showToast('Local storage full — sign in with Google to keep new photos');
+    }
+  }
   if (gDriveReady) scheduleDriveSave();
 }
 function load() {
@@ -2454,16 +2463,10 @@ function applyCrop() {
     const v = vehicles.find(x => x.id === currentVehicleId);
     if (!v.photos) v.photos = [];
     v.photos.push(resized);
-    try {
-      save();
-      cancelCrop();
-      openVehicle(currentVehicleId);
-      showToast('Photo saved!');
-    } catch(err) {
-      v.photos.pop();
-      cancelCrop();
-      showToast('Not enough storage — try a smaller image');
-    }
+    save();
+    cancelCrop();
+    openVehicle(currentVehicleId);
+    showToast('Photo saved!');
   };
   img.src = _cropOrigSrc;
 }
