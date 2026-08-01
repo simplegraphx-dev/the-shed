@@ -1140,6 +1140,16 @@
         </select>
       </div>
     </div>
+    <div class="form-row" id="nv-modelserial-row" style="display:none;">
+      <div class="form-group">
+        <label>Model #</label>
+        <input type="text" id="nv-model-num" placeholder="Z335E">
+      </div>
+      <div class="form-group">
+        <label>Serial #</label>
+        <input type="text" id="nv-serial-num" placeholder="1GX737B123456">
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label id="nv-mileage-label">Current Mileage</label>
@@ -1268,7 +1278,7 @@
       </div>
       <div class="form-group">
         <label>Vehicle Type</label>
-        <select id="ev-type" onchange="document.getElementById('ev-hydraulic-section').style.display = this.value === 'other' ? '' : 'none'; document.getElementById('ev-inspection-row').style.display = this.value === 'other' ? 'none' : '';" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
+        <select id="ev-type" onchange="document.getElementById('ev-hydraulic-section').style.display = this.value === 'other' ? '' : 'none'; document.getElementById('ev-inspection-row').style.display = this.value === 'other' ? 'none' : ''; document.getElementById('ev-modelserial-row').style.display = this.value === 'other' ? '' : 'none';" style="width:100%;background:var(--steel);border:1px solid #444;color:var(--chrome);padding:10px 12px;font-family:Inter,sans-serif;font-size:14px;outline:none;">
           <option value="vehicle">Car or Truck</option>
           <option value="other">Other (Mower, Scooter, Equipment)</option>
         </select>
@@ -1279,6 +1289,16 @@
           <option value="0">Miles</option>
           <option value="1">Hours</option>
         </select>
+      </div>
+    </div>
+    <div class="form-row" id="ev-modelserial-row" style="display:none;">
+      <div class="form-group">
+        <label>Model #</label>
+        <input type="text" id="ev-model-num" placeholder="Z335E">
+      </div>
+      <div class="form-group">
+        <label>Serial #</label>
+        <input type="text" id="ev-serial-num" placeholder="1GX737B123456">
       </div>
     </div>
     <div class="form-group" id="ev-inspection-row">
@@ -1418,7 +1438,7 @@
         <input type="date" id="svc-date">
       </div>
       <div class="form-group">
-        <label>Mileage</label>
+        <label id="svc-mileage-label">Mileage</label>
         <input type="number" id="svc-mileage" placeholder="45000">
       </div>
     </div>
@@ -1462,7 +1482,7 @@
         <input type="date" id="edit-svc-date">
       </div>
       <div class="form-group">
-        <label>Mileage</label>
+        <label id="edit-svc-mileage-label">Mileage</label>
         <input type="number" id="edit-svc-mileage">
       </div>
     </div>
@@ -2481,6 +2501,8 @@ function renderSpecs(v) {
     : '';
 
   const specsGrid = [
+    specCell('Model #', v.modelNum, true),
+    specCell('Serial #', v.serialNum, true),
     specCell('Oil Capacity', s.oilCap),
     specCell('Oil Weight', s.oilWeight, true),
     specCell('Lug Nut Torque', s.torque),
@@ -3043,6 +3065,7 @@ function updateVehicleTypeFields() {
   document.getElementById('nv-type-only-row').style.display = isOther ? '' : 'none';
   document.getElementById('nv-hydraulic-section').style.display = isOther ? '' : 'none';
   document.getElementById('nv-inspection-row').style.display = isOther ? 'none' : '';
+  document.getElementById('nv-modelserial-row').style.display = isOther ? '' : 'none';
   updateMileageLabel();
 }
 
@@ -3079,6 +3102,8 @@ function addVehicle() {
     isHours: document.getElementById('nv-type').value === 'vehicle' ? document.getElementById('nv-is-hours').value === '1' : document.getElementById('nv-is-hours-other').value === '1',
     vehicleType: document.getElementById('nv-type').value,
     inspectionMonth: document.getElementById('nv-type').value === 'vehicle' ? document.getElementById('nv-inspection-month').value : '',
+    modelNum: document.getElementById('nv-type').value === 'other' ? document.getElementById('nv-model-num').value.trim() : '',
+    serialNum: document.getElementById('nv-type').value === 'other' ? document.getElementById('nv-serial-num').value.trim() : '',
     photo: null,
     specs: {
       oilCap: document.getElementById('nv-oil-cap').value.trim() ? document.getElementById('nv-oil-cap').value.trim() + ' Quarts' : '',
@@ -3110,7 +3135,7 @@ function addVehicle() {
   showToast('Vehicle added!');
 
   // Clear form
-  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear','nv-hydraulic-fluid','nv-hydraulic-cap','nv-hydraulic-filter'].forEach(id => document.getElementById(id).value = '');
+  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear','nv-hydraulic-fluid','nv-hydraulic-cap','nv-hydraulic-filter','nv-model-num','nv-serial-num'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('nv-is-hours').value = '0';
   document.getElementById('nv-is-hours-other').value = '0';
   document.getElementById('nv-type').value = 'vehicle';
@@ -3149,6 +3174,9 @@ function showEditVehicleModal() {
     document.getElementById('ev-hydraulic-section').style.display = (v.vehicleType === 'other') ? '' : 'none';
     document.getElementById('ev-inspection-month').value = v.inspectionMonth || '';
     document.getElementById('ev-inspection-row').style.display = (v.vehicleType === 'other') ? 'none' : '';
+    document.getElementById('ev-model-num').value = v.modelNum || '';
+    document.getElementById('ev-serial-num').value = v.serialNum || '';
+    document.getElementById('ev-modelserial-row').style.display = (v.vehicleType === 'other') ? '' : 'none';
     document.getElementById('edit-vehicle-modal').classList.add('active');
   } catch(err) {
     alert('Edit error: ' + err.message);
@@ -3183,6 +3211,8 @@ function saveEditVehicle() {
   v.specs.hydraulicFluid = document.getElementById('ev-hydraulic-fluid').value.trim();
   v.specs.hydraulicCap = document.getElementById('ev-hydraulic-cap').value.trim() ? document.getElementById('ev-hydraulic-cap').value.trim() + ' ' + document.getElementById('ev-hydraulic-unit').value : '';
   v.specs.hydraulicFilter = document.getElementById('ev-hydraulic-filter').value.trim();
+  v.modelNum = v.vehicleType === 'other' ? document.getElementById('ev-model-num').value.trim() : '';
+  v.serialNum = v.vehicleType === 'other' ? document.getElementById('ev-serial-num').value.trim() : '';
 
   v.wipers = {
     driver: document.getElementById('ev-wiper-driver').value.trim() ? document.getElementById('ev-wiper-driver').value.trim() + '"' : '',
@@ -3223,6 +3253,9 @@ function showAddServiceModal() {
   document.getElementById('svc-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('svc-mileage').value = '';
   document.getElementById('svc-desc').value = '';
+  const v = vehicles.find(x => x.id === currentVehicleId);
+  document.getElementById('svc-mileage-label').textContent = (v && v.isHours) ? 'Hours' : 'Mileage';
+  document.getElementById('svc-mileage').placeholder = (v && v.isHours) ? '450' : '45000';
   populateServiceSuggestions();
   document.getElementById('add-service-modal').classList.add('active');
 }
@@ -3310,6 +3343,7 @@ function editService(hid) {
   const parsed = parseServiceDate(h.date);
   document.getElementById('edit-svc-date').value = parsed ? parsed.toISOString().split('T')[0] : '';
   document.getElementById('edit-svc-mileage').value = h.mileage || '';
+  document.getElementById('edit-svc-mileage-label').textContent = v.isHours ? 'Hours' : 'Mileage';
   document.getElementById('edit-svc-desc').value = h.desc;
   document.getElementById('edit-service-modal').classList.add('active');
 }
