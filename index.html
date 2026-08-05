@@ -1225,14 +1225,30 @@
         <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Tire Size — Front</label>
-        <input type="text" id="nv-tire-front" placeholder="225/65R17">
+    <div class="form-group">
+      <label>Tire Size — Front</label>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input type="number" id="nv-tire-front-width" placeholder="225" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
+        <input type="number" id="nv-tire-front-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
+        <input type="number" id="nv-tire-front-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
-      <div class="form-group">
-        <label>Tire Size — Rear</label>
-        <input type="text" id="nv-tire-rear" placeholder="225/65R17">
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="nv-tire-same" checked onchange="toggleSameTireSize('nv')" style="width:auto;">
+        Rear tire same as front
+      </label>
+    </div>
+    <div class="form-group" id="nv-tire-rear-group" style="display:none;">
+      <label>Tire Size — Rear</label>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input type="number" id="nv-tire-rear-width" placeholder="225" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
+        <input type="number" id="nv-tire-rear-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
+        <input type="number" id="nv-tire-rear-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
     </div>
     <div id="nv-hydraulic-section" style="display:none;">
@@ -1404,14 +1420,30 @@
         <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Tire Size — Front</label>
-        <input type="text" id="ev-tire-front" placeholder="225/65R17">
+    <div class="form-group">
+      <label>Tire Size — Front</label>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input type="number" id="ev-tire-front-width" placeholder="225" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
+        <input type="number" id="ev-tire-front-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
+        <input type="number" id="ev-tire-front-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
-      <div class="form-group">
-        <label>Tire Size — Rear</label>
-        <input type="text" id="ev-tire-rear" placeholder="225/65R17">
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="ev-tire-same" onchange="toggleSameTireSize('ev')" style="width:auto;">
+        Rear tire same as front
+      </label>
+    </div>
+    <div class="form-group" id="ev-tire-rear-group" style="display:none;">
+      <label>Tire Size — Rear</label>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input type="number" id="ev-tire-rear-width" placeholder="225" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
+        <input type="number" id="ev-tire-rear-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
+        <input type="number" id="ev-tire-rear-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
     </div>
     <div id="ev-hydraulic-section" style="display:none;">
@@ -2541,12 +2573,16 @@ function renderSpecs(v) {
       </div>
     </div>` : '';
 
+  const tiresSameSize = v.tires && v.tires.front && v.tires.front === v.tires.rear;
   const tiresHtml = (v.tires && (v.tires.front || v.tires.rear)) ? `
     <div style="margin-top:16px;">
       <div class="parts-title">Tire Size</div>
       <div class="wiper-grid">
-        ${v.tires.front ? `<div class="spec-cell"><div class="spec-label">Front</div><div class="spec-value mono">${v.tires.front}</div></div>` : ''}
-        ${v.tires.rear ? `<div class="spec-cell"><div class="spec-label">Rear</div><div class="spec-value mono">${v.tires.rear}</div></div>` : ''}
+        ${tiresSameSize
+          ? `<div class="spec-cell"><div class="spec-label">All Tires</div><div class="spec-value mono">${v.tires.front}</div></div>`
+          : `${v.tires.front ? `<div class="spec-cell"><div class="spec-label">Front</div><div class="spec-value mono">${v.tires.front}</div></div>` : ''}
+             ${v.tires.rear ? `<div class="spec-cell"><div class="spec-label">Rear</div><div class="spec-value mono">${v.tires.rear}</div></div>` : ''}`
+        }
       </div>
     </div>` : '';
 
@@ -3089,6 +3125,27 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('active');
 }
 
+// ── TIRE SIZE HELPERS ────────────────────────────────────────────
+function toggleSameTireSize(prefix) {
+  const same = document.getElementById(`${prefix}-tire-same`).checked;
+  document.getElementById(`${prefix}-tire-rear-group`).style.display = same ? 'none' : '';
+}
+
+function buildTireSize(prefix, pos) {
+  const w = document.getElementById(`${prefix}-tire-${pos}-width`).value.trim();
+  const a = document.getElementById(`${prefix}-tire-${pos}-aspect`).value.trim();
+  const d = document.getElementById(`${prefix}-tire-${pos}-diameter`).value.trim();
+  if (!w || !a || !d) return '';
+  return `${w}/${a}R${d}`;
+}
+
+function fillTireInputs(prefix, pos, sizeStr) {
+  const match = (sizeStr || '').match(/(\d+)\s*\/\s*(\d+)\s*R\s*(\d+)/i);
+  document.getElementById(`${prefix}-tire-${pos}-width`).value = match ? match[1] : '';
+  document.getElementById(`${prefix}-tire-${pos}-aspect`).value = match ? match[2] : '';
+  document.getElementById(`${prefix}-tire-${pos}-diameter`).value = match ? match[3] : '';
+}
+
 function updateVehicleTypeFields() {
   const isOther = document.getElementById('nv-type').value === 'other';
   document.getElementById('nv-tag-row').style.display = isOther ? 'none' : '';
@@ -3153,8 +3210,8 @@ function addVehicle() {
       rear: document.getElementById('nv-wiper-rear').value.trim() ? document.getElementById('nv-wiper-rear').value.trim() + '"' : ''
     },
     tires: {
-      front: document.getElementById('nv-tire-front').value.trim(),
-      rear: document.getElementById('nv-tire-rear').value.trim()
+      front: buildTireSize('nv', 'front'),
+      rear: document.getElementById('nv-tire-same').checked ? buildTireSize('nv', 'front') : buildTireSize('nv', 'rear')
     },
     altParts: [], notes: '', history: []
   };
@@ -3169,7 +3226,9 @@ function addVehicle() {
   showToast('Vehicle added!');
 
   // Clear form
-  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear','nv-hydraulic-fluid','nv-hydraulic-cap','nv-hydraulic-filter','nv-model-num','nv-serial-num','nv-tire-front','nv-tire-rear'].forEach(id => document.getElementById(id).value = '');
+  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear','nv-hydraulic-fluid','nv-hydraulic-cap','nv-hydraulic-filter','nv-model-num','nv-serial-num','nv-tire-front-width','nv-tire-front-aspect','nv-tire-front-diameter','nv-tire-rear-width','nv-tire-rear-aspect','nv-tire-rear-diameter'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nv-tire-same').checked = true;
+  toggleSameTireSize('nv');
   document.getElementById('nv-is-hours').value = '0';
   document.getElementById('nv-is-hours-other').value = '0';
   document.getElementById('nv-type').value = 'vehicle';
@@ -3201,8 +3260,13 @@ function showEditVehicleModal() {
     document.getElementById('ev-wiper-driver').value = ((v.wipers && v.wipers.driver) || '').replace(/"/g, '').trim();
     document.getElementById('ev-wiper-passenger').value = ((v.wipers && v.wipers.passenger) || '').replace(/"/g, '').trim();
     document.getElementById('ev-wiper-rear').value = ((v.wipers && v.wipers.rear) || '').replace(/"/g, '').trim();
-    document.getElementById('ev-tire-front').value = (v.tires && v.tires.front) || '';
-    document.getElementById('ev-tire-rear').value = (v.tires && v.tires.rear) || '';
+    const tFront = (v.tires && v.tires.front) || '';
+    const tRear = (v.tires && v.tires.rear) || '';
+    fillTireInputs('ev', 'front', tFront);
+    const tiresSame = tFront && tFront === tRear;
+    document.getElementById('ev-tire-same').checked = tiresSame || !tRear;
+    fillTireInputs('ev', 'rear', tRear);
+    toggleSameTireSize('ev');
     document.getElementById('ev-hydraulic-fluid').value = (v.specs && v.specs.hydraulicFluid) || '';
     document.getElementById('ev-hydraulic-cap').value = ((v.specs && v.specs.hydraulicCap) || '').replace(/\s*(qts|quarts|gal|gallons)\s*/i, '').trim();
     document.getElementById('ev-hydraulic-unit').value = /gallon/i.test((v.specs && v.specs.hydraulicCap) || '') ? 'Gallons' : 'Quarts';
@@ -3258,8 +3322,8 @@ function saveEditVehicle() {
   Object.keys(v.wipers).forEach(k => { if (!v.wipers[k]) delete v.wipers[k]; });
 
   v.tires = {
-    front: document.getElementById('ev-tire-front').value.trim(),
-    rear: document.getElementById('ev-tire-rear').value.trim()
+    front: buildTireSize('ev', 'front'),
+    rear: document.getElementById('ev-tire-same').checked ? buildTireSize('ev', 'front') : buildTireSize('ev', 'rear')
   };
   Object.keys(v.tires).forEach(k => { if (!v.tires[k]) delete v.tires[k]; });
 
@@ -3479,8 +3543,12 @@ function exportToExcel() {
     if (w.driver)    rows.push(['Wiper - Driver', w.driver]);
     if (w.passenger) rows.push(['Wiper - Passenger', w.passenger]);
     if (w.rear)      rows.push(['Wiper - Rear', w.rear]);
-    if (v.tires && v.tires.front) rows.push(['Tire Size - Front', v.tires.front]);
-    if (v.tires && v.tires.rear)  rows.push(['Tire Size - Rear', v.tires.rear]);
+    if (v.tires && v.tires.front && v.tires.front === v.tires.rear) {
+      rows.push(['Tire Size', v.tires.front]);
+    } else {
+      if (v.tires && v.tires.front) rows.push(['Tire Size - Front', v.tires.front]);
+      if (v.tires && v.tires.rear)  rows.push(['Tire Size - Rear', v.tires.rear]);
+    }
     if (v.modelNum) rows.push(['Model #', v.modelNum]);
     if (v.serialNum) rows.push(['Serial #', v.serialNum]);
     rows.push(['License Plate', v.tag || '']);
