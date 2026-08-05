@@ -1225,6 +1225,16 @@
         <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tire Size — Front</label>
+        <input type="text" id="nv-tire-front" placeholder="225/65R17">
+      </div>
+      <div class="form-group">
+        <label>Tire Size — Rear</label>
+        <input type="text" id="nv-tire-rear" placeholder="225/65R17">
+      </div>
+    </div>
     <div id="nv-hydraulic-section" style="display:none;">
       <div class="parts-title" style="margin:16px 0 10px;">Hydraulic System</div>
       <div class="form-group">
@@ -1392,6 +1402,16 @@
       <div style="display:flex;align-items:center;gap:6px;">
         <input type="number" id="ev-wiper-rear" placeholder="12" style="flex:1;">
         <span style="font-family:'Roboto Mono',monospace;font-size:13px;color:var(--muted);">"</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tire Size — Front</label>
+        <input type="text" id="ev-tire-front" placeholder="225/65R17">
+      </div>
+      <div class="form-group">
+        <label>Tire Size — Rear</label>
+        <input type="text" id="ev-tire-rear" placeholder="225/65R17">
       </div>
     </div>
     <div id="ev-hydraulic-section" style="display:none;">
@@ -2521,6 +2541,15 @@ function renderSpecs(v) {
       </div>
     </div>` : '';
 
+  const tiresHtml = (v.tires && (v.tires.front || v.tires.rear)) ? `
+    <div style="margin-top:16px;">
+      <div class="parts-title">Tire Size</div>
+      <div class="wiper-grid">
+        ${v.tires.front ? `<div class="spec-cell"><div class="spec-label">Front</div><div class="spec-value mono">${v.tires.front}</div></div>` : ''}
+        ${v.tires.rear ? `<div class="spec-cell"><div class="spec-label">Rear</div><div class="spec-value mono">${v.tires.rear}</div></div>` : ''}
+      </div>
+    </div>` : '';
+
   document.getElementById('tab-specs').innerHTML = `
     <div class="mileage-banner">
       <div>
@@ -2546,6 +2575,7 @@ function renderSpecs(v) {
       <button class="mileage-update-btn" onclick="downloadInspectionReminder('${v.id}')">📅 Remind Me</button>
     </div>` : ''}
     ${specsGrid ? `<div class="specs-grid">${specsGrid}</div>` : ''}
+    ${tiresHtml}
     ${wipersHtml}
   `;
 }
@@ -3122,6 +3152,10 @@ function addVehicle() {
       passenger: document.getElementById('nv-wiper-passenger').value.trim() ? document.getElementById('nv-wiper-passenger').value.trim() + '"' : '',
       rear: document.getElementById('nv-wiper-rear').value.trim() ? document.getElementById('nv-wiper-rear').value.trim() + '"' : ''
     },
+    tires: {
+      front: document.getElementById('nv-tire-front').value.trim(),
+      rear: document.getElementById('nv-tire-rear').value.trim()
+    },
     altParts: [], notes: '', history: []
   };
 
@@ -3135,7 +3169,7 @@ function addVehicle() {
   showToast('Vehicle added!');
 
   // Clear form
-  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear','nv-hydraulic-fluid','nv-hydraulic-cap','nv-hydraulic-filter','nv-model-num','nv-serial-num'].forEach(id => document.getElementById(id).value = '');
+  ['nv-year','nv-make','nv-model','nv-tag','nv-mileage','nv-oil-cap','nv-oil-weight','nv-oil-filter','nv-air-filter','nv-cabin-filter','nv-torque','nv-wrench','nv-avg-miles','nv-wiper-driver','nv-wiper-passenger','nv-wiper-rear','nv-hydraulic-fluid','nv-hydraulic-cap','nv-hydraulic-filter','nv-model-num','nv-serial-num','nv-tire-front','nv-tire-rear'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('nv-is-hours').value = '0';
   document.getElementById('nv-is-hours-other').value = '0';
   document.getElementById('nv-type').value = 'vehicle';
@@ -3167,6 +3201,8 @@ function showEditVehicleModal() {
     document.getElementById('ev-wiper-driver').value = ((v.wipers && v.wipers.driver) || '').replace(/"/g, '').trim();
     document.getElementById('ev-wiper-passenger').value = ((v.wipers && v.wipers.passenger) || '').replace(/"/g, '').trim();
     document.getElementById('ev-wiper-rear').value = ((v.wipers && v.wipers.rear) || '').replace(/"/g, '').trim();
+    document.getElementById('ev-tire-front').value = (v.tires && v.tires.front) || '';
+    document.getElementById('ev-tire-rear').value = (v.tires && v.tires.rear) || '';
     document.getElementById('ev-hydraulic-fluid').value = (v.specs && v.specs.hydraulicFluid) || '';
     document.getElementById('ev-hydraulic-cap').value = ((v.specs && v.specs.hydraulicCap) || '').replace(/\s*(qts|quarts|gal|gallons)\s*/i, '').trim();
     document.getElementById('ev-hydraulic-unit').value = /gallon/i.test((v.specs && v.specs.hydraulicCap) || '') ? 'Gallons' : 'Quarts';
@@ -3220,6 +3256,12 @@ function saveEditVehicle() {
     rear: document.getElementById('ev-wiper-rear').value.trim() ? document.getElementById('ev-wiper-rear').value.trim() + '"' : ''
   };
   Object.keys(v.wipers).forEach(k => { if (!v.wipers[k]) delete v.wipers[k]; });
+
+  v.tires = {
+    front: document.getElementById('ev-tire-front').value.trim(),
+    rear: document.getElementById('ev-tire-rear').value.trim()
+  };
+  Object.keys(v.tires).forEach(k => { if (!v.tires[k]) delete v.tires[k]; });
 
   save();
   closeModal('edit-vehicle-modal');
@@ -3437,6 +3479,10 @@ function exportToExcel() {
     if (w.driver)    rows.push(['Wiper - Driver', w.driver]);
     if (w.passenger) rows.push(['Wiper - Passenger', w.passenger]);
     if (w.rear)      rows.push(['Wiper - Rear', w.rear]);
+    if (v.tires && v.tires.front) rows.push(['Tire Size - Front', v.tires.front]);
+    if (v.tires && v.tires.rear)  rows.push(['Tire Size - Rear', v.tires.rear]);
+    if (v.modelNum) rows.push(['Model #', v.modelNum]);
+    if (v.serialNum) rows.push(['Serial #', v.serialNum]);
     rows.push(['License Plate', v.tag || '']);
     if (v.inspectionMonth) rows.push(['Inspection Month', v.inspectionMonth]);
     rows.push([`Current ${unit}`, v.mileage || '']);
