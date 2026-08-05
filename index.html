@@ -1228,9 +1228,9 @@
     <div class="form-group">
       <label>Tire Size — Front</label>
       <div style="display:flex;align-items:center;gap:4px;">
-        <input type="number" id="nv-tire-front-width" placeholder="225" style="flex:1;min-width:0;">
+        <input type="number" id="nv-tire-front-width" placeholder="225" style="flex:1;min-width:0;" oninput="tireAdvance(this,3,'nv-tire-front-aspect')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
-        <input type="number" id="nv-tire-front-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <input type="number" id="nv-tire-front-aspect" placeholder="65" style="flex:1;min-width:0;" oninput="tireAdvance(this,2,'nv-tire-front-diameter')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
         <input type="number" id="nv-tire-front-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
@@ -1244,9 +1244,9 @@
     <div class="form-group" id="nv-tire-rear-group" style="display:none;">
       <label>Tire Size — Rear</label>
       <div style="display:flex;align-items:center;gap:4px;">
-        <input type="number" id="nv-tire-rear-width" placeholder="225" style="flex:1;min-width:0;">
+        <input type="number" id="nv-tire-rear-width" placeholder="225" style="flex:1;min-width:0;" oninput="tireAdvance(this,3,'nv-tire-rear-aspect')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
-        <input type="number" id="nv-tire-rear-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <input type="number" id="nv-tire-rear-aspect" placeholder="65" style="flex:1;min-width:0;" oninput="tireAdvance(this,2,'nv-tire-rear-diameter')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
         <input type="number" id="nv-tire-rear-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
@@ -1423,9 +1423,9 @@
     <div class="form-group">
       <label>Tire Size — Front</label>
       <div style="display:flex;align-items:center;gap:4px;">
-        <input type="number" id="ev-tire-front-width" placeholder="225" style="flex:1;min-width:0;">
+        <input type="number" id="ev-tire-front-width" placeholder="225" style="flex:1;min-width:0;" oninput="tireAdvance(this,3,'ev-tire-front-aspect')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
-        <input type="number" id="ev-tire-front-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <input type="number" id="ev-tire-front-aspect" placeholder="65" style="flex:1;min-width:0;" oninput="tireAdvance(this,2,'ev-tire-front-diameter')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
         <input type="number" id="ev-tire-front-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
@@ -1439,9 +1439,9 @@
     <div class="form-group" id="ev-tire-rear-group" style="display:none;">
       <label>Tire Size — Rear</label>
       <div style="display:flex;align-items:center;gap:4px;">
-        <input type="number" id="ev-tire-rear-width" placeholder="225" style="flex:1;min-width:0;">
+        <input type="number" id="ev-tire-rear-width" placeholder="225" style="flex:1;min-width:0;" oninput="tireAdvance(this,3,'ev-tire-rear-aspect')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">/</span>
-        <input type="number" id="ev-tire-rear-aspect" placeholder="65" style="flex:1;min-width:0;">
+        <input type="number" id="ev-tire-rear-aspect" placeholder="65" style="flex:1;min-width:0;" oninput="tireAdvance(this,2,'ev-tire-rear-diameter')">
         <span style="color:var(--muted);font-family:'Roboto Mono',monospace;">R</span>
         <input type="number" id="ev-tire-rear-diameter" placeholder="17" style="flex:1;min-width:0;">
       </div>
@@ -3144,6 +3144,13 @@ function fillTireInputs(prefix, pos, sizeStr) {
   document.getElementById(`${prefix}-tire-${pos}-width`).value = match ? match[1] : '';
   document.getElementById(`${prefix}-tire-${pos}-aspect`).value = match ? match[2] : '';
   document.getElementById(`${prefix}-tire-${pos}-diameter`).value = match ? match[3] : '';
+}
+
+function tireAdvance(el, maxLen, nextId) {
+  if (el.value.length >= maxLen) {
+    const next = document.getElementById(nextId);
+    if (next) next.focus();
+  }
 }
 
 function updateVehicleTypeFields() {
