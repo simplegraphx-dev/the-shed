@@ -1715,7 +1715,7 @@
 </div>
 
 <!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLightboxOnBg(event)">
+<div class="lightbox" id="lightbox" onclick="closeLightboxOnBg(event)" ontouchstart="lightboxTouchStart(event)" ontouchend="lightboxTouchEnd(event)">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="">
   <div class="lightbox-counter" id="lightbox-counter"></div>
@@ -2324,6 +2324,28 @@ function closeLightbox() {
 
 function closeLightboxOnBg(e) {
   if (e.target === document.getElementById('lightbox')) closeLightbox();
+}
+
+// ── LIGHTBOX SWIPE ─────────────────────────────────────────────────
+let _lightboxTouchStartX = 0;
+let _lightboxTouchStartY = 0;
+
+function lightboxTouchStart(e) {
+  if (e.touches.length !== 1) return;
+  _lightboxTouchStartX = e.touches[0].clientX;
+  _lightboxTouchStartY = e.touches[0].clientY;
+}
+
+function lightboxTouchEnd(e) {
+  if (!e.changedTouches.length) return;
+  const dx = e.changedTouches[0].clientX - _lightboxTouchStartX;
+  const dy = e.changedTouches[0].clientY - _lightboxTouchStartY;
+  const SWIPE_THRESHOLD = 50;
+  // Ignore mostly-vertical swipes so scrolling/closing gestures aren't hijacked
+  if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0) lightboxNav(1);   // swipe left → next photo
+    else lightboxNav(-1);         // swipe right → previous photo
+  }
 }
 
 function lightboxNav(dir) {
