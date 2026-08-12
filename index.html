@@ -1708,7 +1708,7 @@
       </div>
     </div>
     <div class="modal-actions" style="margin-top:16px;">
-      <button class="btn-secondary" onclick="cancelCrop()">Cancel</button>
+      <button class="btn-secondary" onclick="cancelCropSkipQueue()">Cancel</button>
       <button class="btn-primary" onclick="applyCrop()">Use Photo</button>
     </div>
   </div>
@@ -2305,7 +2305,7 @@ function renderGallery(v) {
   const addBtn = document.createElement('label');
   addBtn.className = 'gallery-add';
   addBtn.title = 'Add photo';
-  addBtn.innerHTML = '＋<input type="file" accept="image/*" style="display:none;" onchange="addVehiclePhoto(event)">';
+  addBtn.innerHTML = '＋<input type="file" accept="image/*" multiple style="display:none;" onchange="addVehiclePhoto(event)">';
   scroll.appendChild(addBtn);
 }
 
@@ -2398,9 +2398,21 @@ let _imgX = 0, _imgY = 0, _imgScale = 1;
 let _boxX = 0, _boxY = 0, _boxW = 0, _boxH = 0;
 let _drag = null; // {type:'img'|'box'|'handle', startX, startY, origX, origY, origW, origH, pos}
 
+let _photoQueue = [];
+let _photoQueueTotal = 0;
+
 function addVehiclePhoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  const files = Array.from(event.target.files || []);
+  if (!files.length) return;
+  _photoQueue = files;
+  _photoQueueTotal = files.length;
+  processNextQueuedPhoto();
+  event.target.value = '';
+}
+
+function processNextQueuedPhoto() {
+  if (!_photoQueue.length) return;
+  const file = _photoQueue.shift();
   const reader = new FileReader();
   reader.onload = e => {
     _cropOrigSrc = e.target.result;
@@ -2536,6 +2548,12 @@ function cancelCrop() {
   _cropOrigSrc = null;
 }
 
+function cancelCropSkipQueue() {
+  cancelCrop();
+  _photoQueue = [];
+  _photoQueueTotal = 0;
+}
+
 function applyCrop() {
   const container = document.getElementById('crop-container');
   // Crop box in container coords -> map back to natural image coords
@@ -2560,7 +2578,15 @@ function applyCrop() {
     save();
     cancelCrop();
     openVehicle(currentVehicleId);
-    showToast('Photo saved!');
+
+    if (_photoQueue.length) {
+      const remaining = _photoQueue.length;
+      showToast(`Photo saved! ${remaining} more to crop...`);
+      setTimeout(processNextQueuedPhoto, 400);
+    } else {
+      showToast(_photoQueueTotal > 1 ? 'All photos saved!' : 'Photo saved!');
+      _photoQueueTotal = 0;
+    }
   };
   img.src = _cropOrigSrc;
 }
