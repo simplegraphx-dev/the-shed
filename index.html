@@ -1579,6 +1579,10 @@
       </div>
     </div>
     <div class="form-group">
+      <label>Previous Services — tap to add</label>
+      <div id="edit-svc-suggestions" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+    </div>
+    <div class="form-group">
       <label>Service Performed</label>
       <textarea id="edit-svc-desc"></textarea>
     </div>
@@ -3552,8 +3556,8 @@ function showAddServiceModal() {
   document.getElementById('add-service-modal').classList.add('active');
 }
 
-function populateServiceSuggestions() {
-  const container = document.getElementById('svc-suggestions');
+function populateServiceSuggestions(containerId = 'svc-suggestions', textareaId = 'svc-desc') {
+  const container = document.getElementById(containerId);
   container.innerHTML = '';
 
   const enabled = serviceItems.filter(x => x.enabled);
@@ -3563,17 +3567,23 @@ function populateServiceSuggestions() {
     return;
   }
 
+  // Pre-select chips whose name already appears in the current description
+  // (e.g. when editing an existing entry that was built from these items).
+  const currentItems = document.getElementById(textareaId).value
+    .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
   enabled.forEach(item => {
     const chip = document.createElement('button');
     chip.className = 'svc-chip';
     chip.textContent = item.name;
-    chip.onclick = () => toggleServiceChip(chip, item.name);
+    if (currentItems.includes(item.name.toLowerCase())) chip.classList.add('selected');
+    chip.onclick = () => toggleServiceChip(chip, item.name, textareaId);
     container.appendChild(chip);
   });
 }
 
-function toggleServiceChip(chip, item) {
-  const textarea = document.getElementById('svc-desc');
+function toggleServiceChip(chip, item, textareaId = 'svc-desc') {
+  const textarea = document.getElementById(textareaId);
   const selected = chip.classList.toggle('selected');
   const current = textarea.value.split(',').map(s => s.trim()).filter(Boolean);
 
@@ -3637,6 +3647,7 @@ function editService(hid) {
   document.getElementById('edit-svc-mileage').value = h.mileage || '';
   document.getElementById('edit-svc-mileage-label').textContent = v.isHours ? 'Hours' : 'Mileage';
   document.getElementById('edit-svc-desc').value = h.desc;
+  populateServiceSuggestions('edit-svc-suggestions', 'edit-svc-desc');
   document.getElementById('edit-service-modal').classList.add('active');
 }
 
@@ -3655,6 +3666,11 @@ function saveEditService() {
 function deleteService(hid) {
   const v = vehicles.find(x => x.id === currentVehicleId);
   const deletedEntry = v.history.find(x => x.id === hid);
+  if (!deletedEntry) return;
+
+  const confirmDesc = deletedEntry.desc.length > 60 ? deletedEntry.desc.slice(0, 60) + '…' : deletedEntry.desc;
+  if (!confirm(`Delete this service record?\n\n${deletedEntry.date || 'No date'} — ${confirmDesc}`)) return;
+
   const deletedIdx = v.history.findIndex(x => x.id === hid);
   const previousMileage = v.mileage;
 
